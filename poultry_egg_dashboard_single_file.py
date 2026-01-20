@@ -592,13 +592,13 @@ class EggMarketAnalyzer:
                     "logic": "Feed inflation flows through. Loyal base absorbs cost."
                 },
                 "BREAKING STOCK": {
-                    "current": 1.95,
-                    "target": 2.15,
+                    "current": 1.30,
+                    "target": 1.45,
                     "trend": "RECOVERY",
                     "dates": [dates['d30'], dates['d60'], dates['d90']],
-                    "hist": [1.65, 1.72, 1.78, 1.85, 1.90, 1.95],
-                    "fut": [2.00, 2.08, 2.15],
-                    "logic": "Food service recovering. Shell price forces substitution."
+                    "hist": [1.05, 1.12, 1.18, 1.22, 1.26, 1.30],
+                    "fut": [1.35, 1.40, 1.45],
+                    "logic": "Food service recovering. USDA AMS shows ~130¢/doz (Jan 2026). Shell price forces substitution."
                 },
             }
         }

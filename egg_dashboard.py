@@ -41,7 +41,7 @@ class EggMarketAnalyzer:
         conventional_retail = egg_retail if egg_retail > 0 else 3.25
         cage_free_premium = 0.85  # $/dozen premium
         organic_premium = 2.10    # $/dozen premium
-        breaking_stock = 1.95     # $/dozen wholesale
+        breaking_stock = 1.30     # $/dozen wholesale (USDA AMS Breaking Stock ~130¢/doz)
 
         # --- COLD STORAGE ---
         shell_storage = 42.5      # Million dozen
@@ -184,12 +184,12 @@ class EggMarketAnalyzer:
                 },
                 "BREAKING STOCK (Liquid)": {
                     "current": breaking_stock,
-                    "target": 2.15,
+                    "target": 1.45,
                     "trend": "RECOVERY",
                     "dates": [dates['d30'], dates['d60'], dates['d90']],
-                    "hist": [1.65, 1.72, 1.78, 1.85, 1.90, breaking_stock],
-                    "fut": [2.00, 2.08, 2.15],
-                    "logic": "Food service demand recovering. Bakeries, restaurants bidding up supply as shell egg prices force substitution."
+                    "hist": [1.05, 1.12, 1.18, 1.22, 1.26, breaking_stock],
+                    "fut": [1.35, 1.40, 1.45],
+                    "logic": "Food service demand recovering. Bakeries, restaurants bidding up supply as shell egg prices force substitution. USDA AMS shows ~130¢/doz (Jan 2026)."
                 },
                 "EXPORT DRIED/FROZEN": {
                     "current": 1.88,
