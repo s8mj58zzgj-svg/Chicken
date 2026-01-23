@@ -794,12 +794,33 @@ class FreshMarkDashboard(ui.View):
         self.name = 'Fresh Mark Pork Intelligence'
         self.data_engine = PorkDataEngine()
 
-    def layout(self):
-        if self.subviews:
-            return
+    def refresh_data(self, sender):
+        """Refresh all market data and rebuild UI"""
+        print("🔄 REFRESHING MARKET DATA...")
 
+        # Clear cache to force fresh data fetch
+        self.data_engine.cache.clear()
+
+        # Remove all subviews
+        for subview in list(self.subviews):
+            self.remove_subview(subview)
+
+        # Rebuild UI with fresh data
+        self.layout()
+        print("✅ REFRESH COMPLETE")
+
+    def layout(self):
         w = self.width
         h = self.height
+
+        # Add refresh button in top-right corner
+        refresh_btn = ui.Button(frame=(w - 100, 10, 80, 32))
+        refresh_btn.title = '🔄 Refresh'
+        refresh_btn.background_color = '#1a1a1a'
+        refresh_btn.tint_color = THEME['bull']
+        refresh_btn.corner_radius = 6
+        refresh_btn.action = self.refresh_data
+        self.add_subview(refresh_btn)
 
         scroll = ui.ScrollView(frame=(0, 0, w, h))
         scroll.flex = 'WH'
