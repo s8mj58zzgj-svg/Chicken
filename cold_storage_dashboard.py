@@ -502,7 +502,7 @@ class ColdStorageAnalyzer:
                 },
                 "RED MEAT (PORK + BEEF)": {
                     "val": f"{m(totals['red_meat']):.0f}M", "unit": "lbs", "status": "COMBINED",
-                    "insight": f"Pork: {m(pork['total']):.0f}M ({m(pork['total'])/m(totals['red_meat'])*100:.0f}%), Beef: {m(beef['total'].get('current',0)):.0f}M ({m(beef['total'].get('current',0))/m(totals['red_meat'])*100:.0f}%)."
+                    "insight": f"Pork: {m(pork['total']):.0f}M ({m(pork['total'])/m(totals['red_meat'])*100 if totals['red_meat'] > 0 else 0:.0f}%), Beef: {m(beef['total'].get('current',0)):.0f}M ({m(beef['total'].get('current',0))/m(totals['red_meat'])*100 if totals['red_meat'] > 0 else 0:.0f}%)."
                 },
                 "POULTRY (CHICKEN + TURKEY)": {
                     "val": f"{m(totals['poultry']):.0f}M", "unit": "lbs", "status": "HIGH VOLUME",
