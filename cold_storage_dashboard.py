@@ -55,6 +55,82 @@ class ColdStorageDataEngine:
         self.session = requests.Session()
         self.cache = {}
         self.cache_ttl = 1800  # 30 minutes
+        self.use_sample_data = False  # Set to True if API is unavailable
+
+    def generate_sample_data(self, commodity, category=None):
+        """Generate realistic sample cold storage data for testing"""
+        import random
+        import datetime as dt
+
+        # Base values in thousand lbs for different commodities
+        base_values = {
+            'PORK': {'BELLY': 35000, 'HAM': 85000, 'LOIN': 45000, 'BUTT': 55000,
+                    'PICNIC': 40000, 'SPARERIBS': 12000, 'TRIMMINGS': 25000,
+                    'VARIETY MEATS': 8000, None: 305000},
+            'BEEF': {None: 450000, 'BONELESS': 280000, 'BONE-IN': 120000,
+                    'VARIETY MEATS': 50000},
+            'CHICKEN': {None: 720000, 'WHOLE': 180000, 'PARTS': 400000,
+                       'BREAST': 200000, 'WING': 80000, 'LEG QUARTERS': 120000},
+            'TURKEY': {None: 420000, 'WHOLE': 200000, 'PARTS': 180000,
+                      'BREAST': 100000},
+            'BUTTER': {None: 280000},
+            'CHEESE': {None: 1400000, 'AMERICAN': 350000, 'CHEDDAR': 700000,
+                      'SWISS': 150000, 'OTHER': 200000},
+            'STRAWBERRIES': {None: 120000},
+            'BLUEBERRIES': {None: 85000},
+            'RASPBERRIES': {None: 35000},
+            'BLACKBERRIES': {None: 28000},
+            'CHERRIES': {None: 42000},
+            'APPLES': {'FROZEN': 55000},
+            'PEACHES': {'FROZEN': 32000},
+            'GRAPES': {'FROZEN': 18000},
+            'PEAS': {'FROZEN': 95000},
+            'CORN': {'FROZEN': 140000},
+            'BEANS': {'GREEN, FROZEN': 78000, 'LIMA, FROZEN': 35000},
+            'CARROTS': {'FROZEN': 62000},
+            'BROCCOLI': {None: 72000},
+            'CAULIFLOWER': {'FROZEN': 48000},
+            'SPINACH': {'FROZEN': 38000},
+            'VEGETABLES': {'MIXED, FROZEN': 110000},
+            'POTATOES': {'FRENCH FRIED': 850000, 'OTHER FROZEN': 180000},
+            'ONIONS': {'FROZEN': 42000},
+            'ORANGES': {'JUICE CONCENTRATE': 420000},
+            'GRAPEFRUIT': {'JUICE': 85000},
+            'FISH': {None: 280000, 'FILLETS': 150000},
+            'SHELLFISH': {None: 95000},
+            'SHRIMP': {None: 180000},
+            'EGGS': {'SHELL': 42000, 'FROZEN': 68000, 'DRIED': 35000}
+        }
+
+        # Get base value
+        base = base_values.get(commodity, {}).get(category, 50000)
+
+        # Generate 12 months of history with seasonal variation
+        history = []
+        dates = []
+        current_date = dt.datetime.now()
+
+        for i in range(12):
+            month_date = current_date - dt.timedelta(days=30*i)
+            # Add seasonal variation (±15%)
+            variation = 1.0 + (random.random() - 0.5) * 0.3
+            value = base * variation * 1000  # Convert to lbs
+            history.append(value)
+            dates.append(month_date.strftime("%b %Y"))
+
+        history.reverse()
+        dates.reverse()
+
+        current = history[-1]
+        avg_5yr = sum(history) / len(history)
+
+        return {
+            'current': current,
+            'history': history,
+            'dates': dates,
+            'avg_5yr': avg_5yr,
+            'vs_avg': ((current - avg_5yr) / avg_5yr * 100) if avg_5yr > 0 else 0
+        }
 
     def fetch_usda_cold_storage(self, commodity, category=None):
         """
@@ -69,27 +145,56 @@ class ColdStorageDataEngine:
             if time.time() - ts < self.cache_ttl:
                 return data
 
+        # Use sample data if enabled
+        if self.use_sample_data:
+            return self.generate_sample_data(commodity, category)
+
         try:
             url = "http://quickstats.nass.usda.gov/api/api_GET/"
 
-            # Base parameters
+            # Build search term for short_desc
+            search_term = f"{commodity}"
+            if category:
+                search_term += f", {category}"
+            search_term += " - COLD STORAGE"
+
+            # Base parameters - using short_desc for more specific searching
             params = {
                 'key': USDA_KEY,
-                'commodity_desc': commodity,
-                'statisticcat_desc': 'INVENTORY',
+                'short_desc__LIKE': search_term,
+                'freq_desc': 'MONTHLY',
                 'agg_level_desc': 'NATIONAL',
                 'format': 'JSON',
                 'year__GE': '2023'  # Last 2+ years
             }
 
-            # Add category if specified
-            if category:
-                params['class_desc'] = category
-
             r = self.session.get(url, params=params, timeout=15)
 
+            # Check for 403 or other errors that indicate API is blocked
+            if r.status_code == 403:
+                print(f"⚠️  USDA API blocked (403) - switching to sample data mode")
+                self.use_sample_data = True
+                return self.generate_sample_data(commodity, category)
+
             if r.status_code == 200:
-                data = r.json().get('data', [])
+                resp_data = r.json()
+                data = resp_data.get('data', [])
+
+                # If no data with full search, try simpler search
+                if not data:
+                    # Try without category
+                    params['short_desc__LIKE'] = f"{commodity} - COLD STORAGE"
+                    r = self.session.get(url, params=params, timeout=15)
+                    if r.status_code == 200:
+                        data = r.json().get('data', [])
+
+                # If still no data, try with STOCKS instead of COLD STORAGE
+                if not data:
+                    params['short_desc__LIKE'] = f"{commodity} - STOCKS"
+                    r = self.session.get(url, params=params, timeout=15)
+                    if r.status_code == 200:
+                        data = r.json().get('data', [])
+
                 if data:
                     # Sort by date (most recent first)
                     sorted_data = sorted(
@@ -124,9 +229,20 @@ class ColdStorageDataEngine:
 
                     self.cache[cache_key] = (time.time(), result)
                     return result
+                else:
+                    # No data found, switch to sample data
+                    print(f"⚠️  No USDA data found for {commodity}/{category} - using sample data")
+                    if not self.use_sample_data:  # Only switch once
+                        self.use_sample_data = True
+                    return self.generate_sample_data(commodity, category)
 
         except Exception as e:
             print(f"USDA Cold Storage fetch error for {commodity}/{category}: {e}")
+            # Fall back to sample data on error
+            if not self.use_sample_data:
+                self.use_sample_data = True
+                print(f"⚠️  Switching to sample data mode due to API error")
+            return self.generate_sample_data(commodity, category)
 
         return {'current': 0, 'history': [], 'dates': [], 'avg_5yr': 0, 'vs_avg': 0}
 
@@ -1047,7 +1163,19 @@ class ColdStorageDashboard(ui.View):
         sub.text_color = THEME['sub']
         sub.alignment = ui.ALIGN_CENTER
         scroll.add_subview(sub)
-        y += 40
+        y += 20
+
+        # Warning if using sample data
+        if self.data_engine.use_sample_data:
+            warning = ui.Label(frame=(MARGIN, y, cw, 15))
+            warning.text = "⚠️  USING SAMPLE DATA - USDA API unavailable or returned no data"
+            warning.font = ('<system-bold>', 10)
+            warning.text_color = THEME['warn']
+            warning.alignment = ui.ALIGN_CENTER
+            scroll.add_subview(warning)
+            y += 25
+        else:
+            y += 20
 
         # SECTIONS
         sections = [
