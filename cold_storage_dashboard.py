@@ -1,6 +1,6 @@
 # ==================================================
-# USDA COLD STORAGE INVENTORY DASHBOARD
-# Historical Volumes - All Major Categories
+# USDA COLD STORAGE INVENTORY DASHBOARD - COMPLETE
+# Historical Volumes - ALL Categories (Meat, Poultry, Dairy, Fruits, Vegetables, Seafood, Eggs, Juices)
 # ==================================================
 
 import ui
@@ -37,6 +37,11 @@ THEME = {
     'beef': '#ff3333',
     'poultry': '#ffaa00',
     'dairy': '#0099ff',
+    'fruit': '#ff1493',
+    'veg': '#32cd32',
+    'seafood': '#00bfff',
+    'eggs': '#ffeb3b',
+    'juice': '#ff8c00',
     'total': '#00ff88',
     'critical': '#ff0000'
 }
@@ -55,7 +60,7 @@ class ColdStorageDataEngine:
         """
         Fetch USDA NASS Cold Storage Report Data
         Published monthly - most comprehensive cold storage database
-        Report covers: Meat, Poultry, Dairy, Frozen Foods
+        Report covers: Meat, Poultry, Dairy, Frozen Foods, Fruits, Vegetables
         """
         cache_key = f"cold_{commodity}_{category}"
 
@@ -127,13 +132,13 @@ class ColdStorageDataEngine:
 
     def get_cold_storage_snapshot(self):
         """
-        Get comprehensive cold storage data across all major categories
+        Get comprehensive cold storage data across ALL categories
 
         DATA SOURCE: USDA NASS Cold Storage Report (monthly)
         - Most authoritative source for US frozen food inventory
         - Published around 20th of each month for prior month data
         """
-        print("🧊 FETCHING USDA COLD STORAGE DATA...")
+        print("🧊 FETCHING COMPLETE USDA COLD STORAGE DATA...")
 
         # === PORK PRODUCTS ===
         print("  🥓 Fetching pork inventory...")
@@ -145,16 +150,13 @@ class ColdStorageDataEngine:
         pork_spareribs = self.fetch_usda_cold_storage('PORK', 'SPARERIBS')
         pork_trim = self.fetch_usda_cold_storage('PORK', 'TRIMMINGS')
         pork_variety = self.fetch_usda_cold_storage('PORK', 'VARIETY MEATS')
-
-        # Total pork (all categories)
         pork_total_data = self.fetch_usda_cold_storage('PORK')
         pork_total = pork_total_data.get('current', 0)
-        if pork_total == 0:  # Calculate from components if total not available
+        if pork_total == 0:
             pork_total = (pork_belly.get('current', 0) + pork_ham.get('current', 0) +
                          pork_loin.get('current', 0) + pork_butt.get('current', 0) +
                          pork_picnic.get('current', 0) + pork_spareribs.get('current', 0) +
                          pork_trim.get('current', 0) + pork_variety.get('current', 0))
-
         print(f"    Total Pork: {pork_total/1000:.1f}M lbs")
 
         # === BEEF PRODUCTS ===
@@ -163,7 +165,6 @@ class ColdStorageDataEngine:
         beef_boneless = self.fetch_usda_cold_storage('BEEF', 'BONELESS')
         beef_bone_in = self.fetch_usda_cold_storage('BEEF', 'BONE-IN')
         beef_variety = self.fetch_usda_cold_storage('BEEF', 'VARIETY MEATS')
-
         print(f"    Total Beef: {beef_total.get('current', 0)/1000:.1f}M lbs")
 
         # === POULTRY PRODUCTS ===
@@ -171,10 +172,14 @@ class ColdStorageDataEngine:
         chicken_total = self.fetch_usda_cold_storage('CHICKEN')
         chicken_whole = self.fetch_usda_cold_storage('CHICKEN', 'WHOLE')
         chicken_parts = self.fetch_usda_cold_storage('CHICKEN', 'PARTS')
+        chicken_breast = self.fetch_usda_cold_storage('CHICKEN', 'BREAST')
+        chicken_wing = self.fetch_usda_cold_storage('CHICKEN', 'WING')
+        chicken_leg = self.fetch_usda_cold_storage('CHICKEN', 'LEG QUARTERS')
 
         turkey_total = self.fetch_usda_cold_storage('TURKEY')
         turkey_whole = self.fetch_usda_cold_storage('TURKEY', 'WHOLE')
         turkey_parts = self.fetch_usda_cold_storage('TURKEY', 'PARTS')
+        turkey_breast = self.fetch_usda_cold_storage('TURKEY', 'BREAST')
 
         poultry_total = chicken_total.get('current', 0) + turkey_total.get('current', 0)
         print(f"    Total Poultry: {poultry_total/1000:.1f}M lbs")
@@ -183,15 +188,86 @@ class ColdStorageDataEngine:
         print("  🧈 Fetching dairy inventory...")
         butter = self.fetch_usda_cold_storage('BUTTER')
         cheese = self.fetch_usda_cold_storage('CHEESE')
-
+        cheese_american = self.fetch_usda_cold_storage('CHEESE', 'AMERICAN')
+        cheese_cheddar = self.fetch_usda_cold_storage('CHEESE', 'CHEDDAR')
+        cheese_swiss = self.fetch_usda_cold_storage('CHEESE', 'SWISS')
+        cheese_other = self.fetch_usda_cold_storage('CHEESE', 'OTHER')
         dairy_total = butter.get('current', 0) + cheese.get('current', 0)
         print(f"    Total Dairy: {dairy_total/1000:.1f}M lbs")
 
-        # === TOTAL RED MEAT ===
-        red_meat_total = pork_total + beef_total.get('current', 0)
+        # === FROZEN FRUITS ===
+        print("  🍓 Fetching frozen fruit inventory...")
+        fruit_strawberries = self.fetch_usda_cold_storage('STRAWBERRIES')
+        fruit_blueberries = self.fetch_usda_cold_storage('BLUEBERRIES')
+        fruit_raspberries = self.fetch_usda_cold_storage('RASPBERRIES')
+        fruit_blackberries = self.fetch_usda_cold_storage('BLACKBERRIES')
+        fruit_cherries = self.fetch_usda_cold_storage('CHERRIES')
+        fruit_apples = self.fetch_usda_cold_storage('APPLES', 'FROZEN')
+        fruit_peaches = self.fetch_usda_cold_storage('PEACHES', 'FROZEN')
+        fruit_grapes = self.fetch_usda_cold_storage('GRAPES', 'FROZEN')
+        fruit_total = (fruit_strawberries.get('current', 0) + fruit_blueberries.get('current', 0) +
+                      fruit_raspberries.get('current', 0) + fruit_blackberries.get('current', 0) +
+                      fruit_cherries.get('current', 0) + fruit_apples.get('current', 0) +
+                      fruit_peaches.get('current', 0) + fruit_grapes.get('current', 0))
+        print(f"    Total Frozen Fruit: {fruit_total/1000:.1f}M lbs")
 
-        # === GRAND TOTAL (estimated) ===
-        grand_total = red_meat_total + poultry_total + dairy_total
+        # === FROZEN VEGETABLES ===
+        print("  🥦 Fetching frozen vegetable inventory...")
+        veg_peas = self.fetch_usda_cold_storage('PEAS', 'FROZEN')
+        veg_corn = self.fetch_usda_cold_storage('CORN', 'FROZEN')
+        veg_green_beans = self.fetch_usda_cold_storage('BEANS', 'GREEN, FROZEN')
+        veg_lima_beans = self.fetch_usda_cold_storage('BEANS', 'LIMA, FROZEN')
+        veg_carrots = self.fetch_usda_cold_storage('CARROTS', 'FROZEN')
+        veg_broccoli = self.fetch_usda_cold_storage('BROCCOLI')
+        veg_cauliflower = self.fetch_usda_cold_storage('CAULIFLOWER', 'FROZEN')
+        veg_spinach = self.fetch_usda_cold_storage('SPINACH', 'FROZEN')
+        veg_mixed = self.fetch_usda_cold_storage('VEGETABLES', 'MIXED, FROZEN')
+        veg_potatoes_fries = self.fetch_usda_cold_storage('POTATOES', 'FRENCH FRIED')
+        veg_potatoes_other = self.fetch_usda_cold_storage('POTATOES', 'OTHER FROZEN')
+        veg_onions = self.fetch_usda_cold_storage('ONIONS', 'FROZEN')
+        veg_total = (veg_peas.get('current', 0) + veg_corn.get('current', 0) +
+                    veg_green_beans.get('current', 0) + veg_lima_beans.get('current', 0) +
+                    veg_carrots.get('current', 0) + veg_broccoli.get('current', 0) +
+                    veg_cauliflower.get('current', 0) + veg_spinach.get('current', 0) +
+                    veg_mixed.get('current', 0) + veg_potatoes_fries.get('current', 0) +
+                    veg_potatoes_other.get('current', 0) + veg_onions.get('current', 0))
+        print(f"    Total Frozen Vegetables: {veg_total/1000:.1f}M lbs")
+
+        # === FROZEN JUICES ===
+        print("  🍊 Fetching frozen juice inventory...")
+        juice_orange = self.fetch_usda_cold_storage('ORANGES', 'JUICE CONCENTRATE')
+        juice_grapefruit = self.fetch_usda_cold_storage('GRAPEFRUIT', 'JUICE')
+        juice_apple = self.fetch_usda_cold_storage('APPLES', 'JUICE CONCENTRATE')
+        juice_grape = self.fetch_usda_cold_storage('GRAPES', 'JUICE')
+        juice_total = (juice_orange.get('current', 0) + juice_grapefruit.get('current', 0) +
+                      juice_apple.get('current', 0) + juice_grape.get('current', 0))
+        print(f"    Total Frozen Juice: {juice_total/1000:.1f}M lbs")
+
+        # === SEAFOOD/FISH ===
+        print("  🐟 Fetching seafood inventory...")
+        fish_total = self.fetch_usda_cold_storage('FISH')
+        fish_fillets = self.fetch_usda_cold_storage('FISH', 'FILLETS')
+        fish_shellfish = self.fetch_usda_cold_storage('SHELLFISH')
+        fish_shrimp = self.fetch_usda_cold_storage('SHRIMP')
+        seafood_total = (fish_total.get('current', 0) + fish_shellfish.get('current', 0) +
+                        fish_shrimp.get('current', 0))
+        if seafood_total == 0:
+            seafood_total = fish_total.get('current', 0)
+        print(f"    Total Seafood: {seafood_total/1000:.1f}M lbs")
+
+        # === EGGS ===
+        print("  🥚 Fetching egg inventory...")
+        eggs_shell = self.fetch_usda_cold_storage('EGGS', 'SHELL')
+        eggs_frozen = self.fetch_usda_cold_storage('EGGS', 'FROZEN')
+        eggs_dried = self.fetch_usda_cold_storage('EGGS', 'DRIED')
+        eggs_total = (eggs_shell.get('current', 0) + eggs_frozen.get('current', 0) +
+                     eggs_dried.get('current', 0))
+        print(f"    Total Eggs: {eggs_total/1000:.1f}M lbs")
+
+        # === TOTALS ===
+        red_meat_total = pork_total + beef_total.get('current', 0)
+        grand_total = (red_meat_total + poultry_total + dairy_total + fruit_total +
+                      veg_total + juice_total + seafood_total + eggs_total)
 
         print(f"  📊 GRAND TOTAL INVENTORY: {grand_total/1000:.0f}M lbs")
 
@@ -220,17 +296,78 @@ class ColdStorageDataEngine:
                 'chicken': chicken_total,
                 'chicken_whole': chicken_whole,
                 'chicken_parts': chicken_parts,
+                'chicken_breast': chicken_breast,
+                'chicken_wing': chicken_wing,
+                'chicken_leg': chicken_leg,
                 'turkey': turkey_total,
                 'turkey_whole': turkey_whole,
-                'turkey_parts': turkey_parts
+                'turkey_parts': turkey_parts,
+                'turkey_breast': turkey_breast
             },
             'dairy': {
                 'total': dairy_total,
                 'butter': butter,
-                'cheese': cheese
+                'cheese': cheese,
+                'cheese_american': cheese_american,
+                'cheese_cheddar': cheese_cheddar,
+                'cheese_swiss': cheese_swiss,
+                'cheese_other': cheese_other
+            },
+            'fruits': {
+                'total': fruit_total,
+                'strawberries': fruit_strawberries,
+                'blueberries': fruit_blueberries,
+                'raspberries': fruit_raspberries,
+                'blackberries': fruit_blackberries,
+                'cherries': fruit_cherries,
+                'apples': fruit_apples,
+                'peaches': fruit_peaches,
+                'grapes': fruit_grapes
+            },
+            'vegetables': {
+                'total': veg_total,
+                'peas': veg_peas,
+                'corn': veg_corn,
+                'green_beans': veg_green_beans,
+                'lima_beans': veg_lima_beans,
+                'carrots': veg_carrots,
+                'broccoli': veg_broccoli,
+                'cauliflower': veg_cauliflower,
+                'spinach': veg_spinach,
+                'mixed': veg_mixed,
+                'fries': veg_potatoes_fries,
+                'potatoes_other': veg_potatoes_other,
+                'onions': veg_onions
+            },
+            'juices': {
+                'total': juice_total,
+                'orange': juice_orange,
+                'grapefruit': juice_grapefruit,
+                'apple': juice_apple,
+                'grape': juice_grape
+            },
+            'seafood': {
+                'total': seafood_total,
+                'fish': fish_total,
+                'fillets': fish_fillets,
+                'shellfish': fish_shellfish,
+                'shrimp': fish_shrimp
+            },
+            'eggs': {
+                'total': eggs_total,
+                'shell': eggs_shell,
+                'frozen': eggs_frozen,
+                'dried': eggs_dried
             },
             'totals': {
                 'red_meat': red_meat_total,
+                'poultry': poultry_total,
+                'dairy': dairy_total,
+                'fruits': fruit_total,
+                'vegetables': veg_total,
+                'juices': juice_total,
+                'seafood': seafood_total,
+                'eggs': eggs_total,
                 'grand_total': grand_total
             }
         }
@@ -316,215 +453,118 @@ class ColdStorageAnalyzer:
     def __init__(self, storage_data):
         self.storage_data = storage_data
 
+    def get_status(self, vs_avg):
+        """Determine status based on % vs average"""
+        if vs_avg < -20:
+            return "CRITICALLY LOW"
+        elif vs_avg < -10:
+            return "TIGHT"
+        elif vs_avg < -5:
+            return "BELOW NORMAL"
+        elif vs_avg < 5:
+            return "NORMAL"
+        elif vs_avg < 10:
+            return "ABOVE NORMAL"
+        elif vs_avg < 20:
+            return "ABUNDANT"
+        else:
+            return "OVERSUPPLIED"
+
     def calculate_metrics(self):
-        """
-        Analyze cold storage inventory levels and trends
-        """
-        print(f"🧊 ANALYZING COLD STORAGE: {self.storage_data['timestamp']}")
+        """Analyze cold storage inventory levels and trends"""
+        print(f"🧊 ANALYZING COMPLETE COLD STORAGE: {self.storage_data['timestamp']}")
 
-        # === PORK ANALYSIS ===
+        # Helper function
+        def m(val):
+            """Convert to millions"""
+            return val / 1_000_000
+
+        # === EXTRACT ALL DATA ===
         pork = self.storage_data['pork']
-        pork_total = pork['total'] / 1_000_000  # Convert to millions
-
-        belly_curr = pork['belly'].get('current', 0) / 1_000_000
-        belly_avg = pork['belly'].get('avg_5yr', 0) / 1_000_000
-        belly_vs_avg = pork['belly'].get('vs_avg', 0)
-
-        ham_curr = pork['ham'].get('current', 0) / 1_000_000
-        ham_avg = pork['ham'].get('avg_5yr', 0) / 1_000_000
-        ham_vs_avg = pork['ham'].get('vs_avg', 0)
-
-        loin_curr = pork['loin'].get('current', 0) / 1_000_000
-        loin_vs_avg = pork['loin'].get('vs_avg', 0)
-
-        butt_curr = pork['butt'].get('current', 0) / 1_000_000
-        picnic_curr = pork['picnic'].get('current', 0) / 1_000_000
-        spareribs_curr = pork['spareribs'].get('current', 0) / 1_000_000
-        trim_curr = pork['trim'].get('current', 0) / 1_000_000
-
-        # === BEEF ANALYSIS ===
         beef = self.storage_data['beef']
-        beef_total = beef['total'].get('current', 0) / 1_000_000
-        beef_avg = beef['total'].get('avg_5yr', 0) / 1_000_000
-        beef_vs_avg = beef['total'].get('vs_avg', 0)
-
-        beef_boneless_curr = beef['boneless'].get('current', 0) / 1_000_000
-        beef_bone_in_curr = beef['bone_in'].get('current', 0) / 1_000_000
-
-        # === POULTRY ANALYSIS ===
         poultry = self.storage_data['poultry']
-        chicken_curr = poultry['chicken'].get('current', 0) / 1_000_000
-        chicken_avg = poultry['chicken'].get('avg_5yr', 0) / 1_000_000
-        chicken_vs_avg = poultry['chicken'].get('vs_avg', 0)
-
-        turkey_curr = poultry['turkey'].get('current', 0) / 1_000_000
-        turkey_avg = poultry['turkey'].get('avg_5yr', 0) / 1_000_000
-        turkey_vs_avg = poultry['turkey'].get('vs_avg', 0)
-
-        poultry_total = chicken_curr + turkey_curr
-
-        # === DAIRY ANALYSIS ===
         dairy = self.storage_data['dairy']
-        butter_curr = dairy['butter'].get('current', 0) / 1_000_000
-        butter_avg = dairy['butter'].get('avg_5yr', 0) / 1_000_000
-        butter_vs_avg = dairy['butter'].get('vs_avg', 0)
-
-        cheese_curr = dairy['cheese'].get('current', 0) / 1_000_000
-        cheese_avg = dairy['cheese'].get('avg_5yr', 0) / 1_000_000
-        cheese_vs_avg = dairy['cheese'].get('vs_avg', 0)
-
-        # === TOTALS ===
-        red_meat_total = self.storage_data['totals']['red_meat'] / 1_000_000
-        grand_total = self.storage_data['totals']['grand_total'] / 1_000_000
-
-        def get_status(vs_avg):
-            """Determine status based on % vs average"""
-            if vs_avg < -20:
-                return "CRITICALLY LOW"
-            elif vs_avg < -10:
-                return "TIGHT"
-            elif vs_avg < -5:
-                return "BELOW NORMAL"
-            elif vs_avg < 5:
-                return "NORMAL"
-            elif vs_avg < 10:
-                return "ABOVE NORMAL"
-            elif vs_avg < 20:
-                return "ABUNDANT"
-            else:
-                return "OVERSUPPLIED"
+        fruits = self.storage_data['fruits']
+        vegetables = self.storage_data['vegetables']
+        juices = self.storage_data['juices']
+        seafood = self.storage_data['seafood']
+        eggs = self.storage_data['eggs']
+        totals = self.storage_data['totals']
 
         return {
-            'meta': {
-                'time': self.storage_data['timestamp']
-            },
+            'meta': {'time': self.storage_data['timestamp']},
 
-            # 1. OVERVIEW / TOTALS
+            # 1. GRAND OVERVIEW
             'overview': {
                 "GRAND TOTAL INVENTORY": {
-                    "val": f"{grand_total:.0f}M", "unit": "lbs", "status": "TRACKED",
-                    "insight": f"Total tracked cold storage inventory: {grand_total:.0f}M lbs across meat, poultry, and dairy. This represents major frozen food categories monitored by USDA monthly."
+                    "val": f"{m(totals['grand_total']):.0f}M", "unit": "lbs", "status": "ALL CATEGORIES",
+                    "insight": f"Total frozen food inventory: {m(totals['grand_total']):.0f}M lbs across ALL major categories. USDA monthly cold storage report."
                 },
-                "RED MEAT TOTAL": {
-                    "val": f"{red_meat_total:.0f}M", "unit": "lbs", "status": "COMBINED",
-                    "insight": f"All pork + beef = {red_meat_total:.0f}M lbs. Pork: {pork_total:.0f}M ({pork_total/red_meat_total*100:.0f}%), Beef: {beef_total:.0f}M ({beef_total/red_meat_total*100:.0f}%)."
+                "RED MEAT (PORK + BEEF)": {
+                    "val": f"{m(totals['red_meat']):.0f}M", "unit": "lbs", "status": "COMBINED",
+                    "insight": f"Pork: {m(pork['total']):.0f}M ({m(pork['total'])/m(totals['red_meat'])*100:.0f}%), Beef: {m(beef['total'].get('current',0)):.0f}M ({m(beef['total'].get('current',0))/m(totals['red_meat'])*100:.0f}%)."
                 },
-                "POULTRY TOTAL": {
-                    "val": f"{poultry_total:.0f}M", "unit": "lbs", "status": "ABUNDANT",
-                    "insight": f"All chicken + turkey = {poultry_total:.0f}M lbs. Chicken: {chicken_curr:.0f}M, Turkey: {turkey_curr:.0f}M. Poultry typically has higher inventory turnover than red meat."
+                "POULTRY (CHICKEN + TURKEY)": {
+                    "val": f"{m(totals['poultry']):.0f}M", "unit": "lbs", "status": "HIGH VOLUME",
+                    "insight": f"Chicken: {m(poultry['chicken'].get('current',0)):.0f}M, Turkey: {m(poultry['turkey'].get('current',0)):.0f}M. Fast turnover protein."
                 },
-                "DAIRY TOTAL": {
-                    "val": f"{butter_curr + cheese_curr:.0f}M", "unit": "lbs", "status": "TRACKED",
-                    "insight": f"Butter + Cheese = {butter_curr + cheese_curr:.0f}M lbs. Dairy inventories critical for price discovery in commodity markets."
+                "DAIRY (BUTTER + CHEESE)": {
+                    "val": f"{m(totals['dairy']):.0f}M", "unit": "lbs", "status": "PRICE SENSITIVE",
+                    "insight": f"Butter: {m(dairy['butter'].get('current',0)):.0f}M, Cheese: {m(dairy['cheese'].get('current',0)):.0f}M. Retail price discovery."
+                },
+                "FROZEN FRUITS": {
+                    "val": f"{m(totals['fruits']):.0f}M", "unit": "lbs", "status": "BERRIES HEAVY",
+                    "insight": f"Berries, cherries, apples, peaches. Smoothie boom driving demand. Import heavy (Chile, Mexico)."
+                },
+                "FROZEN VEGETABLES": {
+                    "val": f"{m(totals['vegetables']):.0f}M", "unit": "lbs", "status": "STAPLE FOODS",
+                    "insight": f"Peas, corn, beans, fries, etc. Retail + foodservice. French fries = largest volume single item."
+                },
+                "FROZEN JUICES": {
+                    "val": f"{m(totals['juices']):.0f}M", "unit": "lbs", "status": "DECLINING TREND",
+                    "insight": f"Orange juice concentrate dominant. Category declining (shift to fresh/not-from-concentrate)."
+                },
+                "SEAFOOD/FISH": {
+                    "val": f"{m(totals['seafood']):.0f}M", "unit": "lbs", "status": "IMPORT HEAVY",
+                    "insight": f"Fish fillets, shrimp, shellfish. Mostly imported (Vietnam, India, China, Thailand)."
+                },
+                "EGGS": {
+                    "val": f"{m(totals['eggs']):.0f}M", "unit": "lbs", "status": "BREAKER STOCK",
+                    "insight": f"Shell eggs, frozen liquid, dried. Bakery/food manufacturing demand driver."
                 }
             },
 
-            # 2. PORK INVENTORY
-            'pork': {
-                "PORK TOTAL": {
-                    "val": f"{pork_total:.0f}M", "unit": "lbs",
-                    "status": get_status(pork['total_data'].get('vs_avg', 0)),
-                    "insight": f"All pork products: {pork_total:.0f}M lbs. vs 5-yr avg: {pork['total_data'].get('vs_avg', 0):+.1f}%. Includes bellies, hams, loins, butts, picnics, ribs, trimmings, variety meats."
-                },
-                "PORK BELLIES": {
-                    "val": f"{belly_curr:.1f}M", "unit": "lbs",
-                    "status": get_status(belly_vs_avg),
-                    "insight": f"Belly inventory {belly_curr:.1f}M lbs (5-yr avg: {belly_avg:.1f}M). vs avg: {belly_vs_avg:+.1f}%. CRITICAL CATEGORY - drives bacon pricing. Seasonal low in summer (grilling), high in winter."
-                },
-                "PORK HAMS": {
-                    "val": f"{ham_curr:.1f}M", "unit": "lbs",
-                    "status": get_status(ham_vs_avg),
-                    "insight": f"Ham inventory {ham_curr:.1f}M lbs (5-yr avg: {ham_avg:.1f}M). vs avg: {ham_vs_avg:+.1f}%. Seasonal build for Easter/summer. Mexico export demand factor."
-                },
-                "PORK LOINS": {
-                    "val": f"{loin_curr:.1f}M", "unit": "lbs",
-                    "status": get_status(loin_vs_avg),
-                    "insight": f"Loin inventory {loin_curr:.1f}M lbs. vs avg: {loin_vs_avg:+.1f}%. Premium primal - pork chops, roasts, tenderloins. Retail demand driver."
-                },
-                "PORK BUTTS": {
-                    "val": f"{butt_curr:.1f}M", "unit": "lbs", "status": "TRACKED",
-                    "insight": f"Boston butt inventory {butt_curr:.1f}M lbs. Pulled pork, ground pork, sausage. BBQ season demand (spring/summer spike)."
-                },
-                "PORK PICNICS": {
-                    "val": f"{picnic_curr:.1f}M", "unit": "lbs", "status": "TRACKED",
-                    "insight": f"Picnic shoulder {picnic_curr:.1f}M lbs. Lower-value shoulder cut. Export market favorite (Mexico, China)."
-                },
-                "PORK SPARERIBS": {
-                    "val": f"{spareribs_curr:.1f}M", "unit": "lbs", "status": "TRACKED",
-                    "insight": f"Spareribs {spareribs_curr:.1f}M lbs. Seasonal grilling demand. Asian market strong (ethnic cuisines)."
-                },
-                "PORK TRIMMINGS": {
-                    "val": f"{trim_curr:.1f}M", "unit": "lbs", "status": "TRACKED",
-                    "insight": f"Pork trim inventory {trim_curr:.1f}M lbs. Ground pork, sausage, pepperoni raw material. Lean/fat ratio blending stock."
-                }
-            },
+            # 2. PORK DETAIL
+            'pork': self._build_pork_metrics(pork),
 
-            # 3. BEEF INVENTORY
-            'beef': {
-                "BEEF TOTAL": {
-                    "val": f"{beef_total:.0f}M", "unit": "lbs",
-                    "status": get_status(beef_vs_avg),
-                    "insight": f"All beef products: {beef_total:.0f}M lbs. vs 5-yr avg: {beef_vs_avg:+.1f}%. Includes boneless, bone-in, variety meats. Beef inventory lower than pork (higher price, faster turnover)."
-                },
-                "BEEF BONELESS": {
-                    "val": f"{beef_boneless_curr:.1f}M", "unit": "lbs", "status": "TRACKED",
-                    "insight": f"Boneless beef {beef_boneless_curr:.1f}M lbs. Ground beef, steaks, roasts. Premium retail cuts. Higher value = lower inventory levels."
-                },
-                "BEEF BONE-IN": {
-                    "val": f"{beef_bone_in_curr:.1f}M", "unit": "lbs", "status": "TRACKED",
-                    "insight": f"Bone-in beef {beef_bone_in_curr:.1f}M lbs. Ribs, bone-in steaks. Restaurant/steakhouse demand. Premium grilling cuts."
-                }
-            },
+            # 3. BEEF DETAIL
+            'beef': self._build_beef_metrics(beef),
 
-            # 4. CHICKEN INVENTORY
-            'chicken': {
-                "CHICKEN TOTAL": {
-                    "val": f"{chicken_curr:.0f}M", "unit": "lbs",
-                    "status": get_status(chicken_vs_avg),
-                    "insight": f"All chicken: {chicken_curr:.0f}M lbs (5-yr avg: {chicken_avg:.0f}M). vs avg: {chicken_vs_avg:+.1f}%. Largest volume protein. Fast turnover. QSR demand dominant."
-                },
-                "CHICKEN WHOLE BIRDS": {
-                    "val": f"{poultry['chicken_whole'].get('current', 0)/1_000_000:.1f}M", "unit": "lbs", "status": "TRACKED",
-                    "insight": f"Whole chickens {poultry['chicken_whole'].get('current', 0)/1_000_000:.1f}M lbs. Retail/grocery demand. Rotisserie, roasting birds. Lower margin than parts."
-                },
-                "CHICKEN PARTS": {
-                    "val": f"{poultry['chicken_parts'].get('current', 0)/1_000_000:.1f}M", "unit": "lbs", "status": "TRACKED",
-                    "insight": f"Chicken parts {poultry['chicken_parts'].get('current', 0)/1_000_000:.1f}M lbs. Breasts, wings, thighs, drumsticks. Higher value. QSR/foodservice heavy."
-                }
-            },
+            # 4. CHICKEN DETAIL
+            'chicken': self._build_chicken_metrics(poultry),
 
-            # 5. TURKEY INVENTORY
-            'turkey': {
-                "TURKEY TOTAL": {
-                    "val": f"{turkey_curr:.0f}M", "unit": "lbs",
-                    "status": get_status(turkey_vs_avg),
-                    "insight": f"All turkey: {turkey_curr:.0f}M lbs (5-yr avg: {turkey_avg:.0f}M). vs avg: {turkey_vs_avg:+.1f}%. HIGHLY SEASONAL - massive build for Thanksgiving (Oct-Nov), crash after holidays."
-                },
-                "TURKEY WHOLE BIRDS": {
-                    "val": f"{poultry['turkey_whole'].get('current', 0)/1_000_000:.1f}M", "unit": "lbs", "status": "SEASONAL",
-                    "insight": f"Whole turkeys {poultry['turkey_whole'].get('current', 0)/1_000_000:.1f}M lbs. Thanksgiving/Christmas driver. Inventory peaks Sept-Oct, bottoms Feb-Mar."
-                },
-                "TURKEY PARTS": {
-                    "val": f"{poultry['turkey_parts'].get('current', 0)/1_000_000:.1f}M", "unit": "lbs", "status": "TRACKED",
-                    "insight": f"Turkey parts {poultry['turkey_parts'].get('current', 0)/1_000_000:.1f}M lbs. Deli meat, ground turkey, turkey breast. Year-round demand steadier than whole birds."
-                }
-            },
+            # 5. TURKEY DETAIL
+            'turkey': self._build_turkey_metrics(poultry),
 
-            # 6. DAIRY INVENTORY
-            'dairy': {
-                "BUTTER": {
-                    "val": f"{butter_curr:.0f}M", "unit": "lbs",
-                    "status": get_status(butter_vs_avg),
-                    "insight": f"Butter inventory {butter_curr:.0f}M lbs (5-yr avg: {butter_avg:.0f}M). vs avg: {butter_vs_avg:+.1f}%. PRICE SENSITIVE - tight inventory = retail price spikes. Baking season (Nov-Dec) demand."
-                },
-                "CHEESE": {
-                    "val": f"{cheese_curr:.0f}M", "unit": "lbs",
-                    "status": get_status(cheese_vs_avg),
-                    "insight": f"Cheese inventory {cheese_curr:.0f}M lbs (5-yr avg: {cheese_avg:.0f}M). vs avg: {cheese_vs_avg:+.1f}%. American, cheddar, mozzarella. Pizza/QSR demand stable. CME spot market benchmark."
-                }
-            },
+            # 6. DAIRY DETAIL
+            'dairy': self._build_dairy_metrics(dairy),
 
-            # 7. HISTORICAL DATA FOR CHARTS
+            # 7. FROZEN FRUITS
+            'fruits': self._build_fruit_metrics(fruits),
+
+            # 8. FROZEN VEGETABLES
+            'vegetables': self._build_veg_metrics(vegetables),
+
+            # 9. FROZEN JUICES
+            'juices': self._build_juice_metrics(juices),
+
+            # 10. SEAFOOD
+            'seafood': self._build_seafood_metrics(seafood),
+
+            # 11. EGGS
+            'eggs': self._build_egg_metrics(eggs),
+
+            # Historical data for charts
             'historical': {
                 'pork_belly': pork['belly'],
                 'pork_total': pork['total_data'],
@@ -532,35 +572,276 @@ class ColdStorageAnalyzer:
                 'chicken_total': poultry['chicken'],
                 'turkey_total': poultry['turkey'],
                 'butter': dairy['butter'],
-                'cheese': dairy['cheese']
+                'cheese': dairy['cheese'],
+                'strawberries': fruits['strawberries'],
+                'corn': vegetables['corn'],
+                'fries': vegetables['fries'],
+                'orange_juice': juices['orange']
+            }
+        }
+
+    def _build_pork_metrics(self, pork):
+        m = lambda x: x / 1_000_000
+        return {
+            "PORK TOTAL": {
+                "val": f"{m(pork['total']):.0f}M", "unit": "lbs",
+                "status": self.get_status(pork['total_data'].get('vs_avg', 0)),
+                "insight": f"All pork: {m(pork['total']):.0f}M lbs. vs 5-yr avg: {pork['total_data'].get('vs_avg', 0):+.1f}%. Bellies, hams, loins, butts, etc."
+            },
+            "BELLIES (BACON)": {
+                "val": f"{m(pork['belly'].get('current', 0)):.1f}M", "unit": "lbs",
+                "status": self.get_status(pork['belly'].get('vs_avg', 0)),
+                "insight": f"Belly {m(pork['belly'].get('current',0)):.1f}M vs avg {m(pork['belly'].get('avg_5yr',0)):.1f}M ({pork['belly'].get('vs_avg',0):+.1f}%). CRITICAL - bacon pricing driver."
+            },
+            "HAMS": {
+                "val": f"{m(pork['ham'].get('current', 0)):.1f}M", "unit": "lbs",
+                "status": self.get_status(pork['ham'].get('vs_avg', 0)),
+                "insight": f"Ham {m(pork['ham'].get('current',0)):.1f}M ({pork['ham'].get('vs_avg',0):+.1f}% vs avg). Easter/summer build. Mexico export."
+            },
+            "LOINS": {
+                "val": f"{m(pork['loin'].get('current', 0)):.1f}M", "unit": "lbs",
+                "status": self.get_status(pork['loin'].get('vs_avg', 0)),
+                "insight": f"Loin {m(pork['loin'].get('current',0)):.1f}M ({pork['loin'].get('vs_avg',0):+.1f}%). Premium - chops, roasts, tenderloins."
+            },
+            "BUTTS + PICNICS": {
+                "val": f"{m(pork['butt'].get('current',0) + pork['picnic'].get('current',0)):.1f}M", "unit": "lbs", "status": "SHOULDERS",
+                "insight": f"Butt {m(pork['butt'].get('current',0)):.1f}M, Picnic {m(pork['picnic'].get('current',0)):.1f}M. Pulled pork, ground, export."
+            },
+            "SPARERIBS": {
+                "val": f"{m(pork['spareribs'].get('current', 0)):.1f}M", "unit": "lbs", "status": "SEASONAL",
+                "insight": f"Ribs {m(pork['spareribs'].get('current',0)):.1f}M. Grilling season demand. Asian market strong."
+            },
+            "TRIMMINGS": {
+                "val": f"{m(pork['trim'].get('current', 0)):.1f}M", "unit": "lbs", "status": "PROCESSING",
+                "insight": f"Trim {m(pork['trim'].get('current',0)):.1f}M. Sausage, pepperoni, ground pork raw material."
+            }
+        }
+
+    def _build_beef_metrics(self, beef):
+        m = lambda x: x / 1_000_000
+        return {
+            "BEEF TOTAL": {
+                "val": f"{m(beef['total'].get('current', 0)):.0f}M", "unit": "lbs",
+                "status": self.get_status(beef['total'].get('vs_avg', 0)),
+                "insight": f"All beef: {m(beef['total'].get('current',0)):.0f}M ({beef['total'].get('vs_avg',0):+.1f}% vs avg). Lower inventory than pork (higher price)."
+            },
+            "BONELESS BEEF": {
+                "val": f"{m(beef['boneless'].get('current', 0)):.1f}M", "unit": "lbs", "status": "PREMIUM",
+                "insight": f"Boneless {m(beef['boneless'].get('current',0)):.1f}M. Ground beef, steaks, roasts. Fast turnover."
+            },
+            "BONE-IN BEEF": {
+                "val": f"{m(beef['bone_in'].get('current', 0)):.1f}M", "unit": "lbs", "status": "STEAKHOUSE",
+                "insight": f"Bone-in {m(beef['bone_in'].get('current',0)):.1f}M. Ribs, T-bones, porterhouse. Premium grilling."
+            }
+        }
+
+    def _build_chicken_metrics(self, poultry):
+        m = lambda x: x / 1_000_000
+        return {
+            "CHICKEN TOTAL": {
+                "val": f"{m(poultry['chicken'].get('current', 0)):.0f}M", "unit": "lbs",
+                "status": self.get_status(poultry['chicken'].get('vs_avg', 0)),
+                "insight": f"All chicken: {m(poultry['chicken'].get('current',0)):.0f}M ({poultry['chicken'].get('vs_avg',0):+.1f}%). QSR demand giant."
+            },
+            "WHOLE BIRDS": {
+                "val": f"{m(poultry['chicken_whole'].get('current', 0)):.1f}M", "unit": "lbs", "status": "RETAIL",
+                "insight": f"Whole chickens {m(poultry['chicken_whole'].get('current',0)):.1f}M. Rotisserie, roasting. Lower margin."
+            },
+            "CHICKEN PARTS": {
+                "val": f"{m(poultry['chicken_parts'].get('current', 0)):.1f}M", "unit": "lbs", "status": "FOODSERVICE",
+                "insight": f"Parts {m(poultry['chicken_parts'].get('current',0)):.1f}M. Breasts, wings, thighs. QSR heavy."
+            },
+            "BREASTS": {
+                "val": f"{m(poultry['chicken_breast'].get('current', 0)):.1f}M", "unit": "lbs", "status": "PREMIUM",
+                "insight": f"Breast meat {m(poultry['chicken_breast'].get('current',0)):.1f}M. Highest value. Health-conscious consumer."
+            },
+            "WINGS": {
+                "val": f"{m(poultry['chicken_wing'].get('current', 0)):.1f}M", "unit": "lbs", "status": "SPORTS BARS",
+                "insight": f"Wings {m(poultry['chicken_wing'].get('current',0)):.1f}M. Super Bowl spike. Volatile pricing."
+            }
+        }
+
+    def _build_turkey_metrics(self, poultry):
+        m = lambda x: x / 1_000_000
+        return {
+            "TURKEY TOTAL": {
+                "val": f"{m(poultry['turkey'].get('current', 0)):.0f}M", "unit": "lbs",
+                "status": self.get_status(poultry['turkey'].get('vs_avg', 0)),
+                "insight": f"All turkey: {m(poultry['turkey'].get('current',0)):.0f}M ({poultry['turkey'].get('vs_avg',0):+.1f}%). EXTREME SEASONALITY - Thanksgiving!"
+            },
+            "WHOLE TURKEYS": {
+                "val": f"{m(poultry['turkey_whole'].get('current', 0)):.1f}M", "unit": "lbs", "status": "THANKSGIVING",
+                "insight": f"Whole birds {m(poultry['turkey_whole'].get('current',0)):.1f}M. Peak Oct-Nov, crash Jan-Mar. Holiday driver."
+            },
+            "TURKEY PARTS": {
+                "val": f"{m(poultry['turkey_parts'].get('current', 0)):.1f}M", "unit": "lbs", "status": "YEAR-ROUND",
+                "insight": f"Parts {m(poultry['turkey_parts'].get('current',0)):.1f}M. Deli meat, ground turkey. Steadier demand."
+            }
+        }
+
+    def _build_dairy_metrics(self, dairy):
+        m = lambda x: x / 1_000_000
+        return {
+            "BUTTER": {
+                "val": f"{m(dairy['butter'].get('current', 0)):.0f}M", "unit": "lbs",
+                "status": self.get_status(dairy['butter'].get('vs_avg', 0)),
+                "insight": f"Butter {m(dairy['butter'].get('current',0)):.0f}M ({dairy['butter'].get('vs_avg',0):+.1f}%). PRICE SPIKE RISK when <250M. Holiday baking."
+            },
+            "CHEESE TOTAL": {
+                "val": f"{m(dairy['cheese'].get('current', 0)):.0f}M", "unit": "lbs",
+                "status": self.get_status(dairy['cheese'].get('vs_avg', 0)),
+                "insight": f"All cheese {m(dairy['cheese'].get('current',0)):.0f}M ({dairy['cheese'].get('vs_avg',0):+.1f}%). CME spot market benchmark."
+            },
+            "AMERICAN CHEESE": {
+                "val": f"{m(dairy['cheese_american'].get('current', 0)):.1f}M", "unit": "lbs", "status": "QSR STAPLE",
+                "insight": f"American {m(dairy['cheese_american'].get('current',0)):.1f}M. Burgers, sandwiches. McDonald's etc."
+            },
+            "CHEDDAR": {
+                "val": f"{m(dairy['cheese_cheddar'].get('current', 0)):.1f}M", "unit": "lbs", "status": "VERSATILE",
+                "insight": f"Cheddar {m(dairy['cheese_cheddar'].get('current',0)):.1f}M. Retail #1 cheese. Aging inventory."
+            }
+        }
+
+    def _build_fruit_metrics(self, fruits):
+        m = lambda x: x / 1_000_000
+        return {
+            "STRAWBERRIES": {
+                "val": f"{m(fruits['strawberries'].get('current', 0)):.1f}M", "unit": "lbs",
+                "status": self.get_status(fruits['strawberries'].get('vs_avg', 0)),
+                "insight": f"Strawberries {m(fruits['strawberries'].get('current',0)):.1f}M ({fruits['strawberries'].get('vs_avg',0):+.1f}%). KING of frozen fruit. Smoothie boom."
+            },
+            "BLUEBERRIES": {
+                "val": f"{m(fruits['blueberries'].get('current', 0)):.1f}M", "unit": "lbs",
+                "status": self.get_status(fruits['blueberries'].get('vs_avg', 0)),
+                "insight": f"Blueberries {m(fruits['blueberries'].get('current',0)):.1f}M ({fruits['blueberries'].get('vs_avg',0):+.1f}%). Health food darling. Antioxidants."
+            },
+            "RASPBERRIES": {
+                "val": f"{m(fruits['raspberries'].get('current', 0)):.1f}M", "unit": "lbs", "status": "PREMIUM",
+                "insight": f"Raspberries {m(fruits['raspberries'].get('current',0)):.1f}M. Premium berry. Delicate, expensive."
+            },
+            "CHERRIES": {
+                "val": f"{m(fruits['cherries'].get('current', 0)):.1f}M", "unit": "lbs", "status": "PIE FILLING",
+                "insight": f"Cherries {m(fruits['cherries'].get('current',0)):.1f}M. Tart cherries for pies. Sweet cherries premium."
+            },
+            "OTHER FRUIT (APPLES, PEACHES)": {
+                "val": f"{m(fruits['apples'].get('current',0) + fruits['peaches'].get('current',0)):.1f}M", "unit": "lbs", "status": "DECLINING",
+                "insight": f"Apples + Peaches. Older category declining. Consumer prefers fresh or IQF berries."
+            }
+        }
+
+    def _build_veg_metrics(self, veg):
+        m = lambda x: x / 1_000_000
+        return {
+            "FRENCH FRIES": {
+                "val": f"{m(veg['fries'].get('current', 0)):.0f}M", "unit": "lbs",
+                "status": self.get_status(veg['fries'].get('vs_avg', 0)),
+                "insight": f"French fries {m(veg['fries'].get('current',0)):.0f}M ({veg['fries'].get('vs_avg',0):+.1f}%). LARGEST frozen veg item. McDonald's etc."
+            },
+            "PEAS": {
+                "val": f"{m(veg['peas'].get('current', 0)):.1f}M", "unit": "lbs",
+                "status": self.get_status(veg['peas'].get('vs_avg', 0)),
+                "insight": f"Peas {m(veg['peas'].get('current',0)):.1f}M ({veg['peas'].get('vs_avg',0):+.1f}%). Classic frozen veg. Retail side dish."
+            },
+            "CORN": {
+                "val": f"{m(veg['corn'].get('current', 0)):.1f}M", "unit": "lbs",
+                "status": self.get_status(veg['corn'].get('vs_avg', 0)),
+                "insight": f"Corn {m(veg['corn'].get('current',0)):.1f}M ({veg['corn'].get('vs_avg',0):+.1f}%). Sweet corn. Summer harvest freeze."
+            },
+            "GREEN BEANS": {
+                "val": f"{m(veg['green_beans'].get('current', 0)):.1f}M", "unit": "lbs", "status": "CLASSIC",
+                "insight": f"Green beans {m(veg['green_beans'].get('current',0)):.1f}M. Retail staple. Thanksgiving casserole."
+            },
+            "BROCCOLI": {
+                "val": f"{m(veg['broccoli'].get('current', 0)):.1f}M", "unit": "lbs", "status": "HEALTHY",
+                "insight": f"Broccoli {m(veg['broccoli'].get('current',0)):.1f}M. Health-conscious. Stir fry, steamed."
+            },
+            "MIXED VEGETABLES": {
+                "val": f"{m(veg['mixed'].get('current', 0)):.1f}M", "unit": "lbs", "status": "CONVENIENCE",
+                "insight": f"Mixed veg {m(veg['mixed'].get('current',0)):.1f}M. Peas/carrots/corn blends. Convenience product."
+            },
+            "OTHER (CARROTS, SPINACH, ETC)": {
+                "val": f"{m(veg['carrots'].get('current',0) + veg['spinach'].get('current',0) + veg['cauliflower'].get('current',0)):.1f}M",
+                "unit": "lbs", "status": "DIVERSE",
+                "insight": f"Carrots, spinach, cauliflower combined. Diverse frozen veg options."
+            }
+        }
+
+    def _build_juice_metrics(self, juices):
+        m = lambda x: x / 1_000_000
+        return {
+            "ORANGE JUICE CONCENTRATE": {
+                "val": f"{m(juices['orange'].get('current', 0)):.1f}M", "unit": "lbs",
+                "status": self.get_status(juices['orange'].get('vs_avg', 0)),
+                "insight": f"OJ concentrate {m(juices['orange'].get('current',0)):.1f}M ({juices['orange'].get('vs_avg',0):+.1f}%). DECLINING - shift to fresh/NFC."
+            },
+            "GRAPEFRUIT JUICE": {
+                "val": f"{m(juices['grapefruit'].get('current', 0)):.1f}M", "unit": "lbs", "status": "NICHE",
+                "insight": f"Grapefruit {m(juices['grapefruit'].get('current',0)):.1f}M. Small category. Health-conscious niche."
+            },
+            "APPLE + GRAPE JUICE": {
+                "val": f"{m(juices['apple'].get('current',0) + juices['grape'].get('current',0)):.1f}M",
+                "unit": "lbs", "status": "MINOR",
+                "insight": f"Apple + Grape juice. Very small frozen category. Most sold fresh/shelf-stable."
+            }
+        }
+
+    def _build_seafood_metrics(self, seafood):
+        m = lambda x: x / 1_000_000
+        return {
+            "FISH TOTAL": {
+                "val": f"{m(seafood['fish'].get('current', 0)):.1f}M", "unit": "lbs",
+                "status": self.get_status(seafood['fish'].get('vs_avg', 0)),
+                "insight": f"All fish {m(seafood['fish'].get('current',0)):.1f}M ({seafood['fish'].get('vs_avg',0):+.1f}%). Import heavy - Vietnam, China tilapia/pangasius."
+            },
+            "FISH FILLETS": {
+                "val": f"{m(seafood['fillets'].get('current', 0)):.1f}M", "unit": "lbs", "status": "RETAIL",
+                "insight": f"Fillets {m(seafood['fillets'].get('current',0)):.1f}M. Cod, haddock, tilapia, salmon. Grocery frozen section."
+            },
+            "SHRIMP": {
+                "val": f"{m(seafood['shrimp'].get('current', 0)):.1f}M", "unit": "lbs", "status": "IMPORTS",
+                "insight": f"Shrimp {m(seafood['shrimp'].get('current',0)):.1f}M. India, Thailand, Vietnam. Farm-raised dominant."
+            },
+            "SHELLFISH": {
+                "val": f"{m(seafood['shellfish'].get('current', 0)):.1f}M", "unit": "lbs", "status": "PREMIUM",
+                "insight": f"Shellfish {m(seafood['shellfish'].get('current',0)):.1f}M. Scallops, lobster, crab. Premium pricing."
+            }
+        }
+
+    def _build_egg_metrics(self, eggs):
+        m = lambda x: x / 1_000_000
+        return {
+            "SHELL EGGS (COLD)": {
+                "val": f"{m(eggs['shell'].get('current', 0)):.1f}M", "unit": "lbs", "status": "STORAGE",
+                "insight": f"Shell eggs in cold storage {m(eggs['shell'].get('current',0)):.1f}M. Seasonal storage for price smoothing."
+            },
+            "FROZEN EGGS (LIQUID)": {
+                "val": f"{m(eggs['frozen'].get('current', 0)):.1f}M", "unit": "lbs", "status": "FOOD MFG",
+                "insight": f"Frozen liquid eggs {m(eggs['frozen'].get('current',0)):.1f}M. Bakery, food manufacturing. Breaking operations."
+            },
+            "DRIED EGG PRODUCTS": {
+                "val": f"{m(eggs['dried'].get('current', 0)):.1f}M", "unit": "lbs", "status": "SHELF-STABLE",
+                "insight": f"Dried eggs {m(eggs['dried'].get('current',0)):.1f}M. Powder for baking mixes, processed foods. Long shelf life."
             }
         }
 
     def generate_charts(self, metrics):
-        """Generate historical inventory charts"""
+        """Generate comprehensive charts for all categories"""
         charts = {}
         plt.style.use('dark_background')
-
         hist = metrics['historical']
 
-        # 1. PORK BELLY HISTORICAL TREND
+        # 1. PORK BELLY TREND
         if hist['pork_belly'].get('history'):
             fig, ax = plt.subplots(figsize=(10, 5))
-            history = hist['pork_belly']['history']
+            history = [x/1_000_000 for x in hist['pork_belly']['history']]
             dates = hist['pork_belly']['dates']
-            avg = hist['pork_belly']['avg_5yr']
+            avg = hist['pork_belly']['avg_5yr'] / 1_000_000
 
-            # Convert to millions for readability
-            history_m = [x/1_000_000 for x in history]
-            avg_m = avg / 1_000_000
-
-            x = range(len(history_m))
-            ax.plot(x, history_m, 'o-', color='#ff6b6b', linewidth=3, markersize=8, label='Actual')
-            ax.axhline(y=avg_m, color='#00ff88', linestyle='--', linewidth=2, label=f'5-Yr Avg ({avg_m:.1f}M)')
-
-            ax.set_title('PORK BELLY COLD STORAGE - 12 MONTH TREND', fontsize=16, fontweight='bold', color='#ff6b6b')
+            ax.plot(range(len(history)), history, 'o-', color='#ff6b6b', linewidth=3, markersize=8, label='Actual')
+            ax.axhline(y=avg, color='#00ff88', linestyle='--', linewidth=2, label=f'5-Yr Avg ({avg:.1f}M)')
+            ax.set_title('PORK BELLY INVENTORY - 12 MONTH TREND', fontsize=16, fontweight='bold', color='#ff6b6b')
             ax.set_xlabel('Month', fontsize=12)
-            ax.set_ylabel('Inventory (Million lbs)', fontsize=12)
+            ax.set_ylabel('Million lbs', fontsize=12)
             ax.set_xticks(range(0, len(dates), 2))
             ax.set_xticklabels([dates[i] for i in range(0, len(dates), 2)], rotation=45, ha='right')
             ax.legend(fontsize=11)
@@ -570,24 +851,28 @@ class ColdStorageAnalyzer:
             plt.tight_layout()
             plt.savefig(buf, format='png', dpi=120, facecolor='#1a1a1a')
             buf.seek(0)
-            charts['pork_belly_trend'] = ui.Image.from_data(buf.read())
+            charts['belly_trend'] = ui.Image.from_data(buf.read())
             plt.close()
 
-        # 2. RED MEAT COMPARISON (Pork vs Beef)
-        if hist['pork_total'].get('history') and hist['beef_total'].get('history'):
+        # 2. MEAT COMPARISON (Pork, Beef, Chicken, Turkey)
+        if all([hist['pork_total'].get('history'), hist['beef_total'].get('history'),
+                hist['chicken_total'].get('history'), hist['turkey_total'].get('history')]):
             fig, ax = plt.subplots(figsize=(10, 5))
-
-            pork_hist = [x/1_000_000 for x in hist['pork_total']['history']]
-            beef_hist = [x/1_000_000 for x in hist['beef_total']['history']]
+            pork = [x/1_000_000 for x in hist['pork_total']['history']]
+            beef = [x/1_000_000 for x in hist['beef_total']['history']]
+            chicken = [x/1_000_000 for x in hist['chicken_total']['history']]
+            turkey = [x/1_000_000 for x in hist['turkey_total']['history']]
             dates = hist['pork_total']['dates']
 
-            x = range(len(pork_hist))
-            ax.plot(x, pork_hist, 'o-', color='#ff6b6b', linewidth=3, markersize=8, label='Pork')
-            ax.plot(x, beef_hist, 's-', color='#ff3333', linewidth=3, markersize=8, label='Beef')
+            x = range(len(pork))
+            ax.plot(x, pork, 'o-', color='#ff6b6b', linewidth=2, markersize=6, label='Pork')
+            ax.plot(x, beef, 's-', color='#ff3333', linewidth=2, markersize=6, label='Beef')
+            ax.plot(x, chicken, '^-', color='#ffaa00', linewidth=2, markersize=6, label='Chicken')
+            ax.plot(x, turkey, 'd-', color='#ff9900', linewidth=2, markersize=6, label='Turkey')
 
-            ax.set_title('RED MEAT INVENTORY COMPARISON', fontsize=16, fontweight='bold')
+            ax.set_title('ALL MEAT CATEGORIES - INVENTORY COMPARISON', fontsize=16, fontweight='bold')
             ax.set_xlabel('Month', fontsize=12)
-            ax.set_ylabel('Inventory (Million lbs)', fontsize=12)
+            ax.set_ylabel('Million lbs', fontsize=12)
             ax.set_xticks(range(0, len(dates), 2))
             ax.set_xticklabels([dates[i] for i in range(0, len(dates), 2)], rotation=45, ha='right')
             ax.legend(fontsize=11)
@@ -597,56 +882,23 @@ class ColdStorageAnalyzer:
             plt.tight_layout()
             plt.savefig(buf, format='png', dpi=120, facecolor='#1a1a1a')
             buf.seek(0)
-            charts['red_meat_comparison'] = ui.Image.from_data(buf.read())
+            charts['meat_comparison'] = ui.Image.from_data(buf.read())
             plt.close()
 
-        # 3. POULTRY TRENDS (Chicken vs Turkey)
-        if hist['chicken_total'].get('history') and hist['turkey_total'].get('history'):
-            fig, ax = plt.subplots(figsize=(10, 5))
-
-            chicken_hist = [x/1_000_000 for x in hist['chicken_total']['history']]
-            turkey_hist = [x/1_000_000 for x in hist['turkey_total']['history']]
-            dates = hist['chicken_total']['dates']
-
-            x = range(len(chicken_hist))
-            ax.plot(x, chicken_hist, 'o-', color='#ffaa00', linewidth=3, markersize=8, label='Chicken')
-            ax.plot(x, turkey_hist, 's-', color='#ff9900', linewidth=3, markersize=8, label='Turkey')
-
-            ax.set_title('POULTRY INVENTORY TRENDS', fontsize=16, fontweight='bold', color='#ffaa00')
-            ax.set_xlabel('Month', fontsize=12)
-            ax.set_ylabel('Inventory (Million lbs)', fontsize=12)
-            ax.set_xticks(range(0, len(dates), 2))
-            ax.set_xticklabels([dates[i] for i in range(0, len(dates), 2)], rotation=45, ha='right')
-            ax.legend(fontsize=11)
-            ax.grid(True, alpha=0.3)
-
-            # Highlight turkey seasonality
-            ax.annotate('Thanksgiving Build', xy=(0, turkey_hist[0]), xytext=(2, turkey_hist[0]+50),
-                       arrowprops=dict(arrowstyle='->', color='white', lw=1.5),
-                       fontsize=10, color='white')
-
-            buf = io.BytesIO()
-            plt.tight_layout()
-            plt.savefig(buf, format='png', dpi=120, facecolor='#1a1a1a')
-            buf.seek(0)
-            charts['poultry_trends'] = ui.Image.from_data(buf.read())
-            plt.close()
-
-        # 4. DAIRY TRENDS (Butter vs Cheese)
+        # 3. DAIRY (Butter vs Cheese)
         if hist['butter'].get('history') and hist['cheese'].get('history'):
             fig, ax = plt.subplots(figsize=(10, 5))
-
-            butter_hist = [x/1_000_000 for x in hist['butter']['history']]
-            cheese_hist = [x/1_000_000 for x in hist['cheese']['history']]
+            butter = [x/1_000_000 for x in hist['butter']['history']]
+            cheese = [x/1_000_000 for x in hist['cheese']['history']]
             dates = hist['butter']['dates']
 
-            x = range(len(butter_hist))
-            ax.plot(x, butter_hist, 'o-', color='#ffdd44', linewidth=3, markersize=8, label='Butter')
-            ax.plot(x, cheese_hist, 's-', color='#0099ff', linewidth=3, markersize=8, label='Cheese')
+            x = range(len(butter))
+            ax.plot(x, butter, 'o-', color='#ffdd44', linewidth=3, markersize=8, label='Butter')
+            ax.plot(x, cheese, 's-', color='#0099ff', linewidth=3, markersize=8, label='Cheese')
 
-            ax.set_title('DAIRY PRODUCT INVENTORY', fontsize=16, fontweight='bold', color='#0099ff')
+            ax.set_title('DAIRY INVENTORY - BUTTER VS CHEESE', fontsize=16, fontweight='bold', color='#0099ff')
             ax.set_xlabel('Month', fontsize=12)
-            ax.set_ylabel('Inventory (Million lbs)', fontsize=12)
+            ax.set_ylabel('Million lbs', fontsize=12)
             ax.set_xticks(range(0, len(dates), 2))
             ax.set_xticklabels([dates[i] for i in range(0, len(dates), 2)], rotation=45, ha='right')
             ax.legend(fontsize=11)
@@ -656,7 +908,80 @@ class ColdStorageAnalyzer:
             plt.tight_layout()
             plt.savefig(buf, format='png', dpi=120, facecolor='#1a1a1a')
             buf.seek(0)
-            charts['dairy_trends'] = ui.Image.from_data(buf.read())
+            charts['dairy_trend'] = ui.Image.from_data(buf.read())
+            plt.close()
+
+        # 4. FROZEN FRUITS & VEGETABLES
+        if hist['strawberries'].get('history') and hist['corn'].get('history'):
+            fig, ax = plt.subplots(figsize=(10, 5))
+            strawberries = [x/1_000_000 for x in hist['strawberries']['history']]
+            corn = [x/1_000_000 for x in hist['corn']['history']]
+            dates = hist['strawberries']['dates']
+
+            x = range(len(strawberries))
+            ax.plot(x, strawberries, 'o-', color='#ff1493', linewidth=3, markersize=8, label='Strawberries')
+            ax.plot(x, corn, 's-', color='#32cd32', linewidth=3, markersize=8, label='Corn')
+
+            ax.set_title('FROZEN PRODUCE - STRAWBERRIES VS CORN', fontsize=16, fontweight='bold', color='#32cd32')
+            ax.set_xlabel('Month', fontsize=12)
+            ax.set_ylabel('Million lbs', fontsize=12)
+            ax.set_xticks(range(0, len(dates), 2))
+            ax.set_xticklabels([dates[i] for i in range(0, len(dates), 2)], rotation=45, ha='right')
+            ax.legend(fontsize=11)
+            ax.grid(True, alpha=0.3)
+
+            buf = io.BytesIO()
+            plt.tight_layout()
+            plt.savefig(buf, format='png', dpi=120, facecolor='#1a1a1a')
+            buf.seek(0)
+            charts['produce_trend'] = ui.Image.from_data(buf.read())
+            plt.close()
+
+        # 5. FRENCH FRIES TREND
+        if hist['fries'].get('history'):
+            fig, ax = plt.subplots(figsize=(10, 5))
+            fries = [x/1_000_000 for x in hist['fries']['history']]
+            dates = hist['fries']['dates']
+            avg = hist['fries']['avg_5yr'] / 1_000_000
+
+            ax.plot(range(len(fries)), fries, 'o-', color='#ffaa00', linewidth=3, markersize=8, label='Actual')
+            ax.axhline(y=avg, color='#00ff88', linestyle='--', linewidth=2, label=f'5-Yr Avg ({avg:.0f}M)')
+
+            ax.set_title('FRENCH FRIES INVENTORY - QSR BELLWETHER', fontsize=16, fontweight='bold', color='#ffaa00')
+            ax.set_xlabel('Month', fontsize=12)
+            ax.set_ylabel('Million lbs', fontsize=12)
+            ax.set_xticks(range(0, len(dates), 2))
+            ax.set_xticklabels([dates[i] for i in range(0, len(dates), 2)], rotation=45, ha='right')
+            ax.legend(fontsize=11)
+            ax.grid(True, alpha=0.3)
+
+            buf = io.BytesIO()
+            plt.tight_layout()
+            plt.savefig(buf, format='png', dpi=120, facecolor='#1a1a1a')
+            buf.seek(0)
+            charts['fries_trend'] = ui.Image.from_data(buf.read())
+            plt.close()
+
+        # 6. ORANGE JUICE CONCENTRATE DECLINE
+        if hist['orange_juice'].get('history'):
+            fig, ax = plt.subplots(figsize=(10, 5))
+            oj = [x/1_000_000 for x in hist['orange_juice']['history']]
+            dates = hist['orange_juice']['dates']
+
+            ax.plot(range(len(oj)), oj, 'o-', color='#ff8c00', linewidth=3, markersize=8, label='OJ Concentrate')
+            ax.set_title('ORANGE JUICE CONCENTRATE - SECULAR DECLINE', fontsize=16, fontweight='bold', color='#ff8c00')
+            ax.set_xlabel('Month', fontsize=12)
+            ax.set_ylabel('Million lbs', fontsize=12)
+            ax.set_xticks(range(0, len(dates), 2))
+            ax.set_xticklabels([dates[i] for i in range(0, len(dates), 2)], rotation=45, ha='right')
+            ax.legend(fontsize=11)
+            ax.grid(True, alpha=0.3)
+
+            buf = io.BytesIO()
+            plt.tight_layout()
+            plt.savefig(buf, format='png', dpi=120, facecolor='#1a1a1a')
+            buf.seek(0)
+            charts['oj_trend'] = ui.Image.from_data(buf.read())
             plt.close()
 
         return charts
@@ -669,21 +994,15 @@ class ColdStorageDashboard(ui.View):
     def __init__(self):
         super().__init__()
         self.background_color = THEME['bg']
-        self.name = 'USDA Cold Storage Inventory'
+        self.name = 'USDA Cold Storage - Complete'
         self.data_engine = ColdStorageDataEngine()
 
     def refresh_data(self, sender):
         """Refresh all cold storage data and rebuild UI"""
-        print("🔄 REFRESHING COLD STORAGE DATA...")
-
-        # Clear cache to force fresh data fetch
+        print("🔄 REFRESHING COMPLETE COLD STORAGE DATA...")
         self.data_engine.cache.clear()
-
-        # Remove all subviews
         for subview in list(self.subviews):
             self.remove_subview(subview)
-
-        # Rebuild UI with fresh data
         self.layout()
         print("✅ REFRESH COMPLETE")
 
@@ -691,7 +1010,7 @@ class ColdStorageDashboard(ui.View):
         w = self.width
         h = self.height
 
-        # Add refresh button in top-right corner
+        # Refresh button
         refresh_btn = ui.Button(frame=(w - 100, 10, 80, 32))
         refresh_btn.title = '🔄 Refresh'
         refresh_btn.background_color = '#1a1a1a'
@@ -708,9 +1027,6 @@ class ColdStorageDashboard(ui.View):
         storage_data = self.data_engine.get_cold_storage_snapshot()
         analyzer = ColdStorageAnalyzer(storage_data)
         metrics = analyzer.calculate_metrics()
-
-        # Generate charts
-        print("📊 GENERATING CHARTS...")
         charts = analyzer.generate_charts(metrics)
 
         cw = w - (MARGIN * 2)
@@ -718,145 +1034,75 @@ class ColdStorageDashboard(ui.View):
 
         # HEADER
         title = ui.Label(frame=(MARGIN, y, cw, 30))
-        title.text = "🧊 USDA COLD STORAGE INVENTORY"
-        title.font = ('<system-bold>', 26)
+        title.text = "🧊 USDA COLD STORAGE - COMPLETE DATABASE"
+        title.font = ('<system-bold>', 24)
         title.text_color = THEME['total']
         title.alignment = ui.ALIGN_CENTER
         scroll.add_subview(title)
         y += 35
 
         sub = ui.Label(frame=(MARGIN, y, cw, 15))
-        sub.text = f"HISTORICAL VOLUMES - ALL MAJOR CATEGORIES | {metrics['meta']['time']}"
-        sub.font = ('<system>', 12)
+        sub.text = f"ALL CATEGORIES - MEAT, POULTRY, DAIRY, FRUITS, VEGETABLES, SEAFOOD, EGGS | {metrics['meta']['time']}"
+        sub.font = ('<system>', 11)
         sub.text_color = THEME['sub']
         sub.alignment = ui.ALIGN_CENTER
         scroll.add_subview(sub)
         y += 40
 
-        # 1. OVERVIEW
-        y = HeaderLabel.create(scroll, "1. INVENTORY OVERVIEW", THEME['total'], y, cw)
-        for k, v in metrics['overview'].items():
-            card, card_h = MetricCard.create(k, v, THEME['total'], cw, y)
-            scroll.add_subview(card)
-            y += card_h + 15
+        # SECTIONS
+        sections = [
+            ("1. GRAND OVERVIEW", 'overview', THEME['total']),
+            ("2. PORK PRODUCTS", 'pork', THEME['pork']),
+            ("3. BEEF PRODUCTS", 'beef', THEME['beef']),
+            ("4. CHICKEN PRODUCTS", 'chicken', THEME['poultry']),
+            ("5. TURKEY PRODUCTS (SEASONAL)", 'turkey', THEME['poultry']),
+            ("6. DAIRY PRODUCTS", 'dairy', THEME['dairy']),
+            ("7. FROZEN FRUITS", 'fruits', THEME['fruit']),
+            ("8. FROZEN VEGETABLES", 'vegetables', THEME['veg']),
+            ("9. FROZEN JUICES", 'juices', THEME['juice']),
+            ("10. SEAFOOD/FISH", 'seafood', THEME['seafood']),
+            ("11. EGGS", 'eggs', THEME['eggs'])
+        ]
 
-        # 2. PORK INVENTORY
-        y = HeaderLabel.create(scroll, "2. PORK COLD STORAGE", THEME['pork'], y, cw)
-        for k, v in metrics['pork'].items():
-            card, card_h = MetricCard.create(k, v, THEME['pork'], cw, y)
-            scroll.add_subview(card)
-            y += card_h + 15
+        for section_title, section_key, color in sections:
+            y = HeaderLabel.create(scroll, section_title, color, y, cw)
+            for k, v in metrics[section_key].items():
+                card, card_h = MetricCard.create(k, v, color, cw, y)
+                scroll.add_subview(card)
+                y += card_h + 15
 
-        # CHART: Pork Belly Trend
-        if 'pork_belly_trend' in charts:
-            card, card_h = ChartCard.create("PORK BELLY INVENTORY - 12 MONTH HISTORY", charts['pork_belly_trend'], cw, y)
-            scroll.add_subview(card)
-            y += card_h + 15
+            # Add charts after relevant sections
+            if section_key == 'pork' and 'belly_trend' in charts:
+                card, card_h = ChartCard.create("PORK BELLY - 12 MONTH HISTORY", charts['belly_trend'], cw, y)
+                scroll.add_subview(card)
+                y += card_h + 15
 
-        # CHART: Red Meat Comparison
-        if 'red_meat_comparison' in charts:
-            card, card_h = ChartCard.create("PORK VS BEEF INVENTORY TRENDS", charts['red_meat_comparison'], cw, y)
-            scroll.add_subview(card)
-            y += card_h + 15
+            if section_key == 'turkey' and 'meat_comparison' in charts:
+                card, card_h = ChartCard.create("ALL MEAT CATEGORIES COMPARISON", charts['meat_comparison'], cw, y)
+                scroll.add_subview(card)
+                y += card_h + 15
 
-        # 3. BEEF INVENTORY
-        y = HeaderLabel.create(scroll, "3. BEEF COLD STORAGE", THEME['beef'], y, cw)
-        for k, v in metrics['beef'].items():
-            card, card_h = MetricCard.create(k, v, THEME['beef'], cw, y)
-            scroll.add_subview(card)
-            y += card_h + 15
+            if section_key == 'dairy' and 'dairy_trend' in charts:
+                card, card_h = ChartCard.create("BUTTER VS CHEESE TRENDS", charts['dairy_trend'], cw, y)
+                scroll.add_subview(card)
+                y += card_h + 15
 
-        # 4. CHICKEN INVENTORY
-        y = HeaderLabel.create(scroll, "4. CHICKEN COLD STORAGE", THEME['poultry'], y, cw)
-        for k, v in metrics['chicken'].items():
-            card, card_h = MetricCard.create(k, v, THEME['poultry'], cw, y)
-            scroll.add_subview(card)
-            y += card_h + 15
+            if section_key == 'fruits' and 'produce_trend' in charts:
+                card, card_h = ChartCard.create("FROZEN PRODUCE TRENDS", charts['produce_trend'], cw, y)
+                scroll.add_subview(card)
+                y += card_h + 15
 
-        # 5. TURKEY INVENTORY
-        y = HeaderLabel.create(scroll, "5. TURKEY COLD STORAGE (SEASONAL)", THEME['poultry'], y, cw)
-        for k, v in metrics['turkey'].items():
-            card, card_h = MetricCard.create(k, v, THEME['poultry'], cw, y)
-            scroll.add_subview(card)
-            y += card_h + 15
+            if section_key == 'vegetables' and 'fries_trend' in charts:
+                card, card_h = ChartCard.create("FRENCH FRIES - QSR DEMAND INDICATOR", charts['fries_trend'], cw, y)
+                scroll.add_subview(card)
+                y += card_h + 15
 
-        # CHART: Poultry Trends
-        if 'poultry_trends' in charts:
-            card, card_h = ChartCard.create("CHICKEN VS TURKEY SEASONALITY", charts['poultry_trends'], cw, y)
-            scroll.add_subview(card)
-            y += card_h + 15
-
-        # 6. DAIRY INVENTORY
-        y = HeaderLabel.create(scroll, "6. DAIRY COLD STORAGE", THEME['dairy'], y, cw)
-        for k, v in metrics['dairy'].items():
-            card, card_h = MetricCard.create(k, v, THEME['dairy'], cw, y)
-            scroll.add_subview(card)
-            y += card_h + 15
-
-        # CHART: Dairy Trends
-        if 'dairy_trends' in charts:
-            card, card_h = ChartCard.create("BUTTER VS CHEESE INVENTORY", charts['dairy_trends'], cw, y)
-            scroll.add_subview(card)
-            y += card_h + 15
-
-        # 7. SUMMARY
-        y = self._draw_summary(scroll, y, cw, metrics)
+            if section_key == 'juices' and 'oj_trend' in charts:
+                card, card_h = ChartCard.create("ORANGE JUICE CONCENTRATE DECLINE", charts['oj_trend'], cw, y)
+                scroll.add_subview(card)
+                y += card_h + 15
 
         scroll.content_size = (w, y + 100)
-
-    def _draw_summary(self, parent, y, w, metrics):
-        y = HeaderLabel.create(parent, "7. MARKET INTELLIGENCE SUMMARY", THEME['warn'], y, w)
-        card_h = 450
-        card = ui.View(frame=(MARGIN, y, w, card_h))
-        card.background_color = '#222'
-        card.corner_radius = 8
-
-        tv = ui.TextView(frame=(15, 15, w-30, card_h-30))
-        tv.background_color = '#222'
-        tv.text_color = 'white'
-        tv.font = ('<system>', 13)
-        tv.editable = False
-        tv.text = (
-            "USDA COLD STORAGE REPORT - MARKET INTELLIGENCE:\n\n"
-            "DATA SOURCE:\n"
-            "Published monthly by USDA National Agricultural Statistics Service (NASS), typically around the "
-            "20th of each month covering prior month's end-of-month inventory. This is the AUTHORITATIVE source "
-            "for frozen food inventory levels in the United States.\n\n"
-            "WHY IT MATTERS:\n"
-            "Cold storage inventory levels are a critical leading indicator for commodity pricing. TIGHT inventories "
-            "(below 5-year average) signal potential price increases as available supply shrinks. ABUNDANT inventories "
-            "(above average) indicate oversupply and downward price pressure.\n\n"
-            "KEY INSIGHTS:\n"
-            "1. PORK BELLIES: Most price-sensitive category. Bacon demand is steady but supply varies seasonally. "
-            "Summer grilling season typically draws down belly inventories (May-Aug lows), winter rebuild (Dec-Feb peaks). "
-            "When belly stocks drop below 50M lbs = CRITICAL - bacon prices spike.\n\n"
-            "2. TURKEY: Extreme seasonality. Massive inventory build Sept-Nov for Thanksgiving/Christmas, crash Jan-Mar. "
-            "Whole bird inventory peaks ~300-400M lbs pre-Thanksgiving, bottoms ~100-150M lbs in spring. Turkey parts "
-            "have steadier year-round demand (deli meat, ground turkey).\n\n"
-            "3. BUTTER: Highly price-sensitive. Retail consumers notice butter price changes immediately. Tight butter "
-            "stocks (<250M lbs) = retail price spikes. Baking season (Nov-Dec) drives seasonal demand.\n\n"
-            "4. CHEESE: More stable than butter. American/cheddar/mozzarella dominate. CME spot cheese market uses "
-            "inventory levels for price discovery. Pizza/QSR demand provides year-round baseline.\n\n"
-            "5. BEEF vs PORK: Beef typically has LOWER inventory levels than pork despite higher consumption, because "
-            "higher prices = faster turnover, less speculative storage. Pork's lower price point = more inventory held.\n\n"
-            "6. CHICKEN: Largest volume but fastest turnover. QSR demand (McDonald's, Chick-fil-A, KFC) dominates. "
-            "Breast meat premium, leg quarters often exported (Africa, Caribbean). Inventory levels rarely tight due "
-            "to rapid production cycles (6-7 weeks vs 6 months for hogs/cattle).\n\n"
-            "TRADING/PROCUREMENT STRATEGY:\n"
-            "- Monitor monthly reports for your key commodities (bellies, hams, etc.)\n"
-            "- When inventory drops >10% below 5-year average = LOCK IN SUPPLY (prices rising)\n"
-            "- When inventory >10% above average = DELAY PURCHASING (prices falling)\n"
-            "- Seasonal patterns: Turkey (Thanksgiving), Bellies (summer lows), Butter (holiday baking)\n"
-            "- Compare current month vs same month prior year for apples-to-apples comparison\n\n"
-            "REPORT TIMING:\n"
-            "Published ~20th of each month. For example, January 20 report shows December 31 inventories. "
-            "Plan procurement 30-60 days ahead based on inventory trends. Markets react to report immediately - "
-            "futures prices move on release day."
-        )
-        tv.editable = False
-        card.add_subview(tv)
-        parent.add_subview(card)
-        return y + card_h + 20
 
 # ==================================================
 # MAIN
