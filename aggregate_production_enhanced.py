@@ -350,8 +350,9 @@ class InteractiveMapView(ui.View):
             x = ((site['lon'] - min_lon) / (max_lon - min_lon)) * self.width
             y = self.height - ((site['lat'] - min_lat) / (max_lat - min_lat)) * self.height
 
-            # Size based on production
-            size = min(max(site['annual_production_tons'] / 200000, 4), 12)
+            # Size based on production (larger for better tapping)
+            visual_size = min(max(site['annual_production_tons'] / 200000, 5), 14)
+            tap_size = max(visual_size + 6, 20)  # Larger tap target
 
             # Color based on logistics score
             if site['logistics_score'] >= 75:
@@ -364,13 +365,14 @@ class InteractiveMapView(ui.View):
             if not site['is_active']:
                 color = THEME['sub']
 
-            # Create button for each site
-            btn = ui.Button(frame=(x-size, y-size, size*2, size*2))
+            # Create button for each site with larger tap area
+            btn = ui.Button(frame=(x-tap_size/2, y-tap_size/2, tap_size, tap_size))
             btn.background_color = color
-            btn.corner_radius = size
+            btn.corner_radius = tap_size/2
             btn.alpha = 0.8
             btn.name = site['mine_id']
             btn.action = self.site_tapped
+            btn.border_width = 0
             self.add_subview(btn)
 
     def site_tapped(self, sender):
@@ -378,6 +380,8 @@ class InteractiveMapView(ui.View):
         site = next((s for s in self.sites if s['mine_id'] == sender.name), None)
         if site:
             self.selected_site = site
+            # Visual feedback
+            sender.alpha = 1.0
             if self.selected_callback:
                 self.selected_callback(site)
 
@@ -693,6 +697,7 @@ class EnhancedAggregateDashboard(ui.View):
         self.detail_popup.frame = (0, 0, self.width, self.height)
         self.detail_popup.flex = 'WH'
         self.add_subview(self.detail_popup)
+        self.detail_popup.bring_to_front()
 
     def close_detail_popup(self):
         if self.detail_popup:
@@ -766,6 +771,30 @@ class EnhancedAggregateDashboard(ui.View):
         map_view.frame = (0, 50, w, h-50)
         map_view.flex = 'WH'
         self.add_subview(map_view)
+
+        # Legend
+        legend_y = h - 70
+        legend_items = [
+            (THEME['bull'], 'Score 75+'),
+            (THEME['warn'], 'Score 50-74'),
+            (THEME['bear'], 'Score <50'),
+            (THEME['sub'], 'Inactive')
+        ]
+
+        legend_x = 15
+        for color, label in legend_items:
+            dot = ui.View(frame=(legend_x, legend_y, 12, 12))
+            dot.background_color = color
+            dot.corner_radius = 6
+            self.add_subview(dot)
+
+            lbl = ui.Label(frame=(legend_x + 18, legend_y - 3, 80, 18))
+            lbl.text = label
+            lbl.font = ('<system>', 10)
+            lbl.text_color = THEME['text']
+            self.add_subview(lbl)
+
+            legend_x += 95
 
         # Force layout of map
         map_view.set_needs_display()
