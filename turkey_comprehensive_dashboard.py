@@ -692,7 +692,522 @@ def create_processor_market_share_chart(production, w, h):
 
     return ui.Image.from_data(buf.read())
 
-# [Rest of UI code follows same pattern as before, but with expanded metrics cards]
+def create_production_chart(production, w, h):
+    """Create production trend chart"""
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(w/100, h/100), dpi=100)
+    fig.patch.set_facecolor('#0a0a0a')
+
+    years = production['year']
+
+    # Birds produced
+    ax1.set_facecolor('#0a0a0a')
+    ax1.bar(years, production['total_birds'], color=THEME['turkey'], alpha=0.8, label='Total Birds')
+    ax1.set_ylabel('Million Birds', color=THEME['text'], fontsize=9)
+    ax1.set_title('Turkey Production Volume', color=THEME['text'], fontsize=11, fontweight='bold')
+    ax1.tick_params(colors=THEME['text'], labelsize=8)
+    ax1.grid(True, alpha=0.2, color=THEME['sub'], axis='y')
+    ax1.legend(fontsize=8)
+
+    if 2022 in years:
+        idx = years.index(2022)
+        ax1.annotate('Avian Flu\n-13%', xy=(2022, production['total_birds'][idx]),
+                    xytext=(0, -25), textcoords='offset points',
+                    color=THEME['bear'], fontsize=8, fontweight='bold',
+                    arrowprops=dict(arrowstyle='->', color=THEME['bear']))
+
+    # Average weight with hen/tom split
+    ax2.set_facecolor('#0a0a0a')
+    ax2.plot(years, production['tom_avg_weight'], color=THEME['bull'], linewidth=2.5, marker='o', markersize=4, label='Tom Weight')
+    ax2.plot(years, production['avg_weight'], color=THEME['warn'], linewidth=2, marker='s', markersize=4, label='Overall Avg')
+    ax2.plot(years, production['hen_avg_weight'], color=THEME['deli'], linewidth=2, marker='^', markersize=4, label='Hen Weight')
+    ax2.set_xlabel('Year', color=THEME['text'], fontsize=9)
+    ax2.set_ylabel('Lbs per Bird (Live Weight)', color=THEME['text'], fontsize=9)
+    ax2.set_title('Bird Weights Trend (Toms Heavier)', color=THEME['text'], fontsize=11, fontweight='bold')
+    ax2.tick_params(colors=THEME['text'], labelsize=8)
+    ax2.grid(True, alpha=0.2, color=THEME['sub'])
+    ax2.legend(fontsize=7, loc='upper left')
+
+    plt.tight_layout()
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', facecolor='#0a0a0a', dpi=100)
+    buf.seek(0)
+    plt.close()
+
+    return ui.Image.from_data(buf.read())
+
+def create_consumption_breakdown_chart(consumption, w, h):
+    """Create consumption by product type"""
+    fig, ax = plt.subplots(figsize=(w/100, h/100), dpi=100)
+    fig.patch.set_facecolor('#0a0a0a')
+    ax.set_facecolor('#0a0a0a')
+
+    years = consumption['year']
+
+    # Stacked area chart
+    ax.fill_between(years, 0, consumption['per_capita_whole'],
+                    color=THEME['turkey'], alpha=0.7, label='Whole Birds')
+    ax.fill_between(years, consumption['per_capita_whole'],
+                    [w+d for w,d in zip(consumption['per_capita_whole'], consumption['per_capita_deli'])],
+                    color=THEME['deli'], alpha=0.7, label='Deli/Lunch Meat')
+    ax.fill_between(years, [w+d for w,d in zip(consumption['per_capita_whole'], consumption['per_capita_deli'])],
+                    [w+d+g for w,d,g in zip(consumption['per_capita_whole'], consumption['per_capita_deli'], consumption['per_capita_ground'])],
+                    color=THEME['ground'], alpha=0.7, label='Ground Turkey')
+    ax.fill_between(years, [w+d+g for w,d,g in zip(consumption['per_capita_whole'], consumption['per_capita_deli'], consumption['per_capita_ground'])],
+                    consumption['per_capita_total'], color=THEME['breast'], alpha=0.7, label='Other Products')
+
+    ax.set_xlabel('Year', color=THEME['text'], fontsize=10)
+    ax.set_ylabel('Lbs per Person', color=THEME['text'], fontsize=10)
+    ax.set_title('Per Capita Consumption by Product', color=THEME['text'], fontsize=12, fontweight='bold', pad=15)
+    ax.legend(loc='upper left', fontsize=8)
+    ax.grid(True, alpha=0.2, color=THEME['sub'])
+    ax.tick_params(colors=THEME['text'], labelsize=8)
+
+    plt.tight_layout()
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', facecolor='#0a0a0a', dpi=100)
+    buf.seek(0)
+    plt.close()
+
+    return ui.Image.from_data(buf.read())
+
+def create_cold_storage_chart(storage, w, h):
+    """Create cold storage inventory chart - all products"""
+    fig, ax = plt.subplots(figsize=(w/100, h/100), dpi=100)
+    fig.patch.set_facecolor('#0a0a0a')
+    ax.set_facecolor('#0a0a0a')
+
+    dates = storage['dates']
+
+    # Stacked area
+    ax.fill_between(dates, 0, storage['whole_birds'], color=THEME['turkey'], alpha=0.7, label='Whole Birds')
+    ax.fill_between(dates, storage['whole_birds'],
+                    [w+b for w,b in zip(storage['whole_birds'], storage['breast_meat'])],
+                    color=THEME['breast'], alpha=0.7, label='Breast Meat')
+    ax.fill_between(dates, [w+b for w,b in zip(storage['whole_birds'], storage['breast_meat'])],
+                    [w+b+d for w,b,d in zip(storage['whole_birds'], storage['breast_meat'], storage['deli_processed'])],
+                    color=THEME['deli'], alpha=0.7, label='Deli/Processed')
+    ax.fill_between(dates, [w+b+d for w,b,d in zip(storage['whole_birds'], storage['breast_meat'], storage['deli_processed'])],
+                    [w+b+d+g for w,b,d,g in zip(storage['whole_birds'], storage['breast_meat'], storage['deli_processed'], storage['ground'])],
+                    color=THEME['ground'], alpha=0.7, label='Ground')
+    ax.fill_between(dates, [w+b+d+g for w,b,d,g in zip(storage['whole_birds'], storage['breast_meat'], storage['deli_processed'], storage['ground'])],
+                    storage['total'], color=THEME['warn'], alpha=0.7, label='Other')
+
+    ax.set_xlabel('Date', color=THEME['text'], fontsize=10)
+    ax.set_ylabel('Million Pounds', color=THEME['text'], fontsize=10)
+    ax.set_title('Cold Storage Inventory by Product (24-Month)', color=THEME['text'], fontsize=12, fontweight='bold', pad=15)
+    ax.legend(loc='upper left', fontsize=7)
+    ax.grid(True, alpha=0.2, color=THEME['sub'])
+    ax.tick_params(colors=THEME['text'], labelsize=8)
+
+    plt.tight_layout()
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', facecolor='#0a0a0a', dpi=100)
+    buf.seek(0)
+    plt.close()
+
+    return ui.Image.from_data(buf.read())
+
+def create_state_production_chart(production, w, h):
+    """Create state production chart"""
+    fig, ax = plt.subplots(figsize=(w/100, h/100), dpi=100)
+    fig.patch.set_facecolor('#0a0a0a')
+    ax.set_facecolor('#0a0a0a')
+
+    states = list(production['states'].keys())
+    values = [production['states'][s][-1] for s in states]
+
+    sorted_data = sorted(zip(states, values), key=lambda x: x[1], reverse=True)
+    states, values = zip(*sorted_data)
+
+    colors = [THEME['turkey'] if s in ['MN', 'NC', 'AR'] else THEME['warn'] if s != 'OTHER' else THEME['sub'] for s in states]
+
+    ax.barh(states, values, color=colors, alpha=0.8)
+    ax.set_xlabel('Million Birds', color=THEME['text'], fontsize=10)
+    ax.set_title('Turkey Production by State (2026)', color=THEME['text'], fontsize=12, fontweight='bold', pad=15)
+    ax.tick_params(colors=THEME['text'], labelsize=9)
+    ax.grid(True, alpha=0.2, color=THEME['sub'], axis='x')
+
+    for i, (state, value) in enumerate(zip(states, values)):
+        ax.text(value + 1, i, f'{value:.1f}M', va='center', color=THEME['text'], fontsize=8)
+
+    plt.tight_layout()
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', facecolor='#0a0a0a', dpi=100)
+    buf.seek(0)
+    plt.close()
+
+    return ui.Image.from_data(buf.read())
+
+# ==================================================
+# MAIN DASHBOARD
+# ==================================================
+
+class TurkeyMarketDashboard(ui.View):
+    def __init__(self):
+        super().__init__()
+        self.background_color = THEME['bg']
+        self.name = 'Turkey Market - Comprehensive'
+        self.data_engine = ComprehensiveTurkeyDataEngine()
+        self.current_data = None
+        self.data_loaded = False
+
+    def did_load(self):
+        if not self.data_loaded:
+            self.refresh_data(None)
+
+    def refresh_data(self, sender):
+        print("🔄 REFRESHING COMPREHENSIVE TURKEY DATA...")
+        self.current_data = self.data_engine.get_comprehensive_snapshot()
+        self.data_loaded = True
+        self.rebuild_ui()
+        print("✅ REFRESH COMPLETE")
+
+    def rebuild_ui(self):
+        for subview in list(self.subviews):
+            self.remove_subview(subview)
+        self.layout()
+
+    def layout(self):
+        if not self.data_loaded and self.width > 0 and self.height > 0:
+            self.refresh_data(None)
+            return
+
+        if not self.current_data:
+            loading = ui.Label(frame=(0, 0, self.width, self.height))
+            loading.text = 'Loading Comprehensive Turkey Data...'
+            loading.alignment = ui.ALIGN_CENTER
+            loading.text_color = THEME['text']
+            loading.font = ('<system>', 20)
+            self.add_subview(loading)
+            return
+
+        w = self.width
+        h = self.height
+
+        scroll = ui.ScrollView(frame=(0, 0, w, h))
+        scroll.background_color = THEME['bg']
+        self.add_subview(scroll)
+
+        y = 10
+
+        # Header
+        header = ui.View(frame=(0, y, w, 70))
+        header.background_color = '#1a1a1a'
+        scroll.add_subview(header)
+
+        title = ui.Label(frame=(15, 10, w-120, 30))
+        title.text = '🦃 TURKEY MARKET - COMPLETE'
+        title.font = ('<system-bold>', 19)
+        title.text_color = THEME['turkey']
+        header.add_subview(title)
+
+        subtitle = ui.Label(frame=(15, 40, w-120, 20))
+        subtitle.text = f"All Products | {self.current_data['timestamp']}"
+        subtitle.font = ('<system>', 10)
+        subtitle.text_color = THEME['sub']
+        header.add_subview(subtitle)
+
+        refresh_btn = ui.Button(frame=(w-100, 20, 85, 35))
+        refresh_btn.title = '🔄 Refresh'
+        refresh_btn.background_color = THEME['bull']
+        refresh_btn.tint_color = 'white'
+        refresh_btn.corner_radius = 6
+        refresh_btn.action = self.refresh_data
+        header.add_subview(refresh_btn)
+
+        y += 80
+
+        # Metrics cards (5 cards)
+        metrics = self.current_data['current_metrics']
+        card_width = (w - 75) / 4
+
+        metric_data = [
+            ('WHOLE BIRD', f"${metrics['price_whole_retail']:.2f}/lb", f"{metrics['yoy_price_change']:+.1f}% YoY", THEME['turkey']),
+            ('DELI MEAT', f"${metrics['price_deli_retail']:.2f}/lb", '32% of market', THEME['deli']),
+            ('GROUND', f"${metrics['price_ground_retail']:.2f}/lb", '18% of market', THEME['ground']),
+            ('PRODUCTION', f"{metrics['current_production']:.0f}M birds", f"{metrics['yoy_production_change']:+.1f}% YoY", THEME['warn'])
+        ]
+
+        for i, (label, value, sub, color) in enumerate(metric_data):
+            card = self.create_metric_card(15 + i * (card_width + 15), y, card_width, 80, label, value, sub, color)
+            scroll.add_subview(card)
+
+        y += 95
+
+        # Feed costs card (critical!)
+        feed_card = ui.View(frame=(15, y, w-30, 60))
+        feed_card.background_color = '#2a1a0a'
+        feed_card.corner_radius = 8
+        scroll.add_subview(feed_card)
+
+        feed_title = ui.Label(frame=(10, 5, w-50, 18))
+        feed_title.text = '🌽 FEED COSTS (55% of production cost)'
+        feed_title.font = ('<system-bold>', 11)
+        feed_title.text_color = '#ffd700'
+        feed_card.add_subview(feed_title)
+
+        feed_text = ui.Label(frame=(10, 28, w-50, 25))
+        feed_text.text = f"Corn: ${metrics['feed_corn']:.2f}/bu  |  Soybean Meal: ${metrics['feed_soymeal']:.0f}/ton"
+        feed_text.font = ('<system>', 13)
+        feed_text.text_color = THEME['text']
+        feed_card.add_subview(feed_text)
+
+        y += 70
+
+        # Price chart
+        section_title = ui.Label(frame=(15, y, w-30, 25))
+        section_title.text = '10-YEAR PRICES: ALL PRODUCTS + FEED COSTS'
+        section_title.font = ('<system-bold>', 14)
+        section_title.text_color = THEME['total']
+        scroll.add_subview(section_title)
+        y += 30
+
+        chart_h = 380
+        price_chart = create_comprehensive_price_chart(self.current_data['prices'], w-30, chart_h)
+        price_img = ui.ImageView(frame=(15, y, w-30, chart_h))
+        price_img.image = price_chart
+        scroll.add_subview(price_img)
+        y += chart_h + 15
+
+        # Product mix pie chart
+        section_title = ui.Label(frame=(15, y, w-30, 25))
+        section_title.text = 'CONSUMPTION BY PRODUCT TYPE'
+        section_title.font = ('<system-bold>', 14)
+        section_title.text_color = THEME['total']
+        scroll.add_subview(section_title)
+        y += 30
+
+        chart_h = 280
+        pie_chart = create_product_category_chart(self.current_data['consumption'], w-30, chart_h)
+        pie_img = ui.ImageView(frame=(15, y, w-30, chart_h))
+        pie_img.image = pie_chart
+        scroll.add_subview(pie_img)
+        y += chart_h + 15
+
+        # Production charts
+        section_title = ui.Label(frame=(15, y, w-30, 25))
+        section_title.text = 'PRODUCTION & BIRD WEIGHTS'
+        section_title.font = ('<system-bold>', 14)
+        section_title.text_color = THEME['total']
+        scroll.add_subview(section_title)
+        y += 30
+
+        chart_h = 350
+        prod_chart = create_production_chart(self.current_data['production'], w-30, chart_h)
+        prod_img = ui.ImageView(frame=(15, y, w-30, chart_h))
+        prod_img.image = prod_chart
+        scroll.add_subview(prod_img)
+        y += chart_h + 15
+
+        # Processor market share
+        section_title = ui.Label(frame=(15, y, w-30, 25))
+        section_title.text = 'PROCESSOR MARKET SHARE'
+        section_title.font = ('<system-bold>', 14)
+        section_title.text_color = THEME['total']
+        scroll.add_subview(section_title)
+        y += 30
+
+        chart_h = 280
+        proc_chart = create_processor_market_share_chart(self.current_data['production'], w-30, chart_h)
+        proc_img = ui.ImageView(frame=(15, y, w-30, chart_h))
+        proc_img.image = proc_chart
+        scroll.add_subview(proc_img)
+        y += chart_h + 15
+
+        # State production
+        section_title = ui.Label(frame=(15, y, w-30, 25))
+        section_title.text = 'PRODUCTION BY STATE'
+        section_title.font = ('<system-bold>', 14)
+        section_title.text_color = THEME['total']
+        scroll.add_subview(section_title)
+        y += 30
+
+        chart_h = 280
+        state_chart = create_state_production_chart(self.current_data['production'], w-30, chart_h)
+        state_img = ui.ImageView(frame=(15, y, w-30, chart_h))
+        state_img.image = state_chart
+        scroll.add_subview(state_img)
+        y += chart_h + 15
+
+        # Consumption breakdown
+        section_title = ui.Label(frame=(15, y, w-30, 25))
+        section_title.text = 'PER CAPITA CONSUMPTION TRENDS'
+        section_title.font = ('<system-bold>', 14)
+        section_title.text_color = THEME['total']
+        scroll.add_subview(section_title)
+        y += 30
+
+        chart_h = 280
+        cons_chart = create_consumption_breakdown_chart(self.current_data['consumption'], w-30, chart_h)
+        cons_img = ui.ImageView(frame=(15, y, w-30, chart_h))
+        cons_img.image = cons_chart
+        scroll.add_subview(cons_img)
+        y += chart_h + 15
+
+        # Cold storage
+        section_title = ui.Label(frame=(15, y, w-30, 25))
+        section_title.text = 'COLD STORAGE INVENTORY'
+        section_title.font = ('<system-bold>', 14)
+        section_title.text_color = THEME['total']
+        scroll.add_subview(section_title)
+        y += 30
+
+        chart_h = 280
+        storage_chart = create_cold_storage_chart(self.current_data['cold_storage'], w-30, chart_h)
+        storage_img = ui.ImageView(frame=(15, y, w-30, chart_h))
+        storage_img.image = storage_chart
+        scroll.add_subview(storage_img)
+        y += chart_h + 15
+
+        # 2026 Outlook
+        section_title = ui.Label(frame=(15, y, w-30, 30))
+        section_title.text = '2026 MARKET OUTLOOK & FORECAST'
+        section_title.font = ('<system-bold>', 16)
+        section_title.text_color = THEME['highlight']
+        scroll.add_subview(section_title)
+        y += 40
+
+        outlook = self.current_data['outlook_2026']
+        outlook_card = self.create_outlook_section(15, y, w-30, outlook)
+        scroll.add_subview(outlook_card)
+        y += outlook_card.height + 20
+
+        scroll.content_size = (w, y)
+
+    def create_metric_card(self, x, y, w, h, label, value, subtext, color):
+        card = ui.View(frame=(x, y, w, h))
+        card.background_color = '#1a1a1a'
+        card.corner_radius = 8
+
+        lbl = ui.Label(frame=(10, 5, w-20, 18))
+        lbl.text = label
+        lbl.font = ('<system-bold>', 10)
+        lbl.text_color = THEME['sub']
+        card.add_subview(lbl)
+
+        val = ui.Label(frame=(10, 25, w-20, 26))
+        val.text = value
+        val.font = ('<system-bold>', 16)
+        val.text_color = color
+        card.add_subview(val)
+
+        sub = ui.Label(frame=(10, 53, w-20, 18))
+        sub.text = subtext
+        sub.font = ('<system>', 9)
+        sub.text_color = THEME['text']
+        card.add_subview(sub)
+
+        return card
+
+    def create_outlook_section(self, x, y, w, outlook):
+        container = ui.View(frame=(x, y, w, 1000))
+        container.background_color = '#0a0a0a'
+
+        cy = 10
+
+        sections_data = [
+            ('PRODUCTION FORECAST', THEME['turkey'], [
+                f"Total Birds: {outlook['production_forecast']['total_birds']:.1f}M ({outlook['production_forecast']['change_pct']:+.1f}%)",
+                f"Live Weight: Toms {outlook['production_forecast']['tom_weight']:.1f} lbs, Hens {outlook['production_forecast']['hen_weight']:.1f} lbs",
+                f"Total Production: {outlook['production_forecast']['total_pounds']:.2f}B lbs ready-to-cook",
+                f"Capacity Utilization: {outlook['production_forecast']['capacity_utilization']:.1f}%"
+            ]),
+            ('PRICE FORECAST (Q4 2026)', THEME['breast'], [
+                f"Whole Bird (Retail): ${outlook['price_forecast']['whole_bird_retail']:.2f}/lb",
+                f"Deli/Lunch Meat: ${outlook['price_forecast']['deli_retail']:.2f}/lb",
+                f"Ground Turkey: ${outlook['price_forecast']['ground_retail']:.2f}/lb",
+                f"Turkey Bacon: ${outlook['price_forecast']['bacon_retail']:.2f}/lb",
+                f"Feed: Corn ${outlook['price_forecast']['feed_corn']:.2f}/bu, SBM ${outlook['price_forecast']['feed_soymeal']:.0f}/ton"
+            ]),
+            ('CONSUMPTION FORECAST', THEME['warn'], [
+                f"Total Per Capita: {outlook['consumption_forecast']['per_capita_total']:.1f} lbs (+{outlook['consumption_forecast']['change_pct']:.1f}%)",
+                f"Deli/Lunch Meat: {outlook['consumption_forecast']['per_capita_deli']:.1f} lbs (growing fastest)",
+                f"Ground Turkey: {outlook['consumption_forecast']['per_capita_ground']:.1f} lbs (health trend)",
+                f"Whole Birds: {outlook['consumption_forecast']['per_capita_whole']:.1f} lbs (declining)",
+                f"Further Processed: {outlook['consumption_forecast']['further_processed_share']}% of market"
+            ])
+        ]
+
+        for section_title, color, items in sections_data:
+            section = ui.Label(frame=(15, cy, w-30, 25))
+            section.text = section_title
+            section.font = ('<system-bold>', 13)
+            section.text_color = color
+            container.add_subview(section)
+            cy += 30
+
+            for item in items:
+                lbl = ui.Label(frame=(25, cy, w-50, 22))
+                lbl.text = f"• {item}"
+                lbl.font = ('<system>', 10)
+                lbl.text_color = THEME['text']
+                lbl.number_of_lines = 0
+                container.add_subview(lbl)
+                cy += 24
+
+            cy += 10
+
+        # Key drivers
+        drivers_lbl = ui.Label(frame=(25, cy, w-50, 18))
+        drivers_lbl.text = "Key Price Drivers:"
+        drivers_lbl.font = ('<system-bold>', 11)
+        drivers_lbl.text_color = THEME['sub']
+        container.add_subview(drivers_lbl)
+        cy += 22
+
+        for driver in outlook['price_forecast']['drivers']:
+            lbl = ui.Label(frame=(35, cy, w-70, 36))
+            lbl.text = f"▸ {driver}"
+            lbl.font = ('<system>', 9)
+            lbl.text_color = THEME['sub']
+            lbl.number_of_lines = 0
+            container.add_subview(lbl)
+            cy += 39
+
+        cy += 15
+
+        # Opportunities
+        section = ui.Label(frame=(15, cy, w-30, 25))
+        section.text = 'MARKET OPPORTUNITIES'
+        section.font = ('<system-bold>', 13)
+        section.text_color = THEME['bull']
+        container.add_subview(section)
+        cy += 30
+
+        for opp in outlook['key_factors']['opportunities']:
+            lbl = ui.Label(frame=(25, cy, w-50, 32))
+            lbl.text = f"✓ {opp}"
+            lbl.font = ('<system>', 9)
+            lbl.text_color = THEME['bull']
+            lbl.number_of_lines = 0
+            container.add_subview(lbl)
+            cy += 34
+
+        cy += 10
+
+        # Risks
+        section = ui.Label(frame=(15, cy, w-30, 25))
+        section.text = 'RISK FACTORS'
+        section.font = ('<system-bold>', 13)
+        section.text_color = THEME['bear']
+        container.add_subview(section)
+        cy += 30
+
+        for risk in outlook['key_factors']['risks']:
+            lbl = ui.Label(frame=(25, cy, w-50, 32))
+            lbl.text = f"⚠ {risk}"
+            lbl.font = ('<system>', 9)
+            lbl.text_color = THEME['bear']
+            lbl.number_of_lines = 0
+            container.add_subview(lbl)
+            cy += 34
+
+        container.height = cy + 20
+        return container
 
 if __name__ == '__main__':
     plt.style.use('dark_background')
