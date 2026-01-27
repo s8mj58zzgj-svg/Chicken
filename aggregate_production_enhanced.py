@@ -288,12 +288,23 @@ class InteractiveMapView(ui.View):
         self.background_color = '#1a1a1a'
 
     def layout(self):
-        self.draw_map()
+        if self.width > 0 and self.height > 0:
+            self.draw_map()
 
     def draw_map(self):
         # Clear existing subviews
         for subview in list(self.subviews):
             self.remove_subview(subview)
+
+        if not self.sites:
+            # Show message if no sites
+            msg = ui.Label(frame=(0, 0, self.width, self.height))
+            msg.text = 'No sites to display'
+            msg.alignment = ui.ALIGN_CENTER
+            msg.text_color = THEME['text']
+            msg.font = ('<system>', 16)
+            self.add_subview(msg)
+            return
 
         # Calculate bounds
         lats = [s['lat'] for s in self.sites]
@@ -302,8 +313,8 @@ class InteractiveMapView(ui.View):
         min_lon, max_lon = min(lons), max(lons)
 
         # Add padding
-        lat_range = max_lat - min_lat
-        lon_range = max_lon - min_lon
+        lat_range = max(max_lat - min_lat, 0.1)  # Prevent zero range
+        lon_range = max(max_lon - min_lon, 0.1)
         min_lat -= lat_range * 0.05
         max_lat += lat_range * 0.05
         min_lon -= lon_range * 0.05
@@ -311,6 +322,10 @@ class InteractiveMapView(ui.View):
 
         # Draw MSA markers
         for msa_name, (msa_lat, msa_lon) in MAJOR_MSAS.items():
+            # Skip MSAs outside our bounds
+            if msa_lon < min_lon or msa_lon > max_lon or msa_lat < min_lat or msa_lat > max_lat:
+                continue
+
             x = ((msa_lon - min_lon) / (max_lon - min_lon)) * self.width
             y = self.height - ((msa_lat - min_lat) / (max_lat - min_lat)) * self.height
 
@@ -696,6 +711,13 @@ class EnhancedAggregateDashboard(ui.View):
 
     def layout(self):
         if not self.current_data:
+            # Show loading message
+            loading = ui.Label(frame=(0, 0, self.width, self.height))
+            loading.text = 'Loading...'
+            loading.alignment = ui.ALIGN_CENTER
+            loading.text_color = THEME['text']
+            loading.font = ('<system>', 20)
+            self.add_subview(loading)
             return
 
         w = self.width
@@ -736,6 +758,9 @@ class EnhancedAggregateDashboard(ui.View):
         map_view.frame = (0, 50, w, h-50)
         map_view.flex = 'WH'
         self.add_subview(map_view)
+
+        # Force layout of map
+        map_view.set_needs_display()
 
 # ==================================================
 # MAIN
