@@ -572,9 +572,6 @@ class ComprehensiveTurkeyDataEngine:
             }
         }
 
-# [CHARTS AND UI CODE CONTINUES - keeping same structure but adding new product categories]
-# Due to length, I'll include the key additions for charts...
-
 def create_comprehensive_price_chart(prices, w, h):
     """Create price chart with ALL products"""
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(w/100, h/100), dpi=100)
