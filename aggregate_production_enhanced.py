@@ -649,14 +649,17 @@ class EnhancedAggregateDashboard(ui.View):
         self.filtered_sites = []
         self.detail_popup = None
         self.filter_panel = None
+        self.data_loaded = False
 
     def did_load(self):
-        self.refresh_data(None)
+        if not self.data_loaded:
+            self.refresh_data(None)
 
     def refresh_data(self, sender):
         print("🔄 REFRESHING AGGREGATE DATA...")
         self.current_data = self.data_engine.get_aggregate_snapshot()
         self.filtered_sites = self.current_data['sites']
+        self.data_loaded = True
         self.rebuild_ui()
         print("✅ REFRESH COMPLETE")
 
@@ -710,6 +713,11 @@ class EnhancedAggregateDashboard(ui.View):
             sender.title = '✕ Close'
 
     def layout(self):
+        # Load data if not already loaded
+        if not self.data_loaded and self.width > 0 and self.height > 0:
+            self.refresh_data(None)
+            return
+
         if not self.current_data:
             # Show loading message
             loading = ui.Label(frame=(0, 0, self.width, self.height))
