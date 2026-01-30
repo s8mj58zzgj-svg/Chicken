@@ -66,13 +66,25 @@ class ChickenMarketLauncher(ui.View):
         self.add_subview(footer)
 
     def launch_dashboard(self, sender):
-        """Launch the chicken/poultry market dashboard"""
+        """Launch the multi-market tabbed dashboard"""
         try:
-            # Create and present the poultry dashboard
-            dashboard = PoultryDashboard(self.data_engine)
-            dashboard.name = "Chicken Market Intelligence"
+            # Import tabbed dashboard
+            from market_intelligence_tabs import MarketIntelligenceTabs
+
+            # Create and present the tabbed dashboard
+            dashboard = MarketIntelligenceTabs(self.data_engine)
             nav = ui.NavigationView(dashboard)
             nav.present('fullscreen')
+        except ImportError:
+            # Fallback to single poultry dashboard if tabs not available
+            try:
+                dashboard = PoultryDashboard(self.data_engine)
+                dashboard.name = "Chicken Market Intelligence"
+                nav = ui.NavigationView(dashboard)
+                nav.present('fullscreen')
+            except Exception as e:
+                print(f"Error launching dashboard: {e}")
+                self._show_error(str(e))
         except Exception as e:
             # Show error if dashboard fails to load
             print(f"Error launching dashboard: {e}")
