@@ -39,13 +39,14 @@ class MarketIntelligenceTabs(ui.View):
         self.tab_buttons = []
         self.dashboards = {}
 
-        # Define tabs
+        # Define tabs - FULL COMPLEX DASHBOARDS
         self.tabs = [
             {'name': 'Poultry', 'icon': '🐔', 'module': 'poultry_dashboard', 'class': 'PoultryDashboard'},
             {'name': 'Eggs', 'icon': '🥚', 'module': 'egg_dashboard', 'class': 'EggDashboard'},
-            {'name': 'Beef', 'icon': '🥩', 'module': 'beef_dairy_dashboard', 'class': 'BeefDashboard'},
+            {'name': 'Beef/Dairy', 'icon': '🥩', 'module': 'beef_dairy_dashboard', 'class': 'MarketSelector'},
             {'name': 'Turkey', 'icon': '🦃', 'module': 'turkey_comprehensive_dashboard', 'class': 'TurkeyDashboard'},
-            {'name': 'Storage', 'icon': '🧊', 'module': 'cold_storage_dashboard', 'class': 'ColdStorageDashboard'},
+            {'name': 'Cold Storage', 'icon': '🧊', 'module': 'cold_storage_dashboard', 'class': 'ColdStorageDashboard'},
+            {'name': 'Consumer Econ', 'icon': '💰', 'module': 'ultimate_consumer_economics_dashboard', 'class': 'UltimateConsumerDashboard'},
         ]
 
         # Refresh button
@@ -155,7 +156,13 @@ class MarketIntelligenceTabs(ui.View):
                 return None
 
             # Create dashboard instance
-            dashboard = dashboard_class(self.data_engine)
+            # Try with data_engine first, then without if that fails
+            try:
+                dashboard = dashboard_class(self.data_engine)
+            except TypeError:
+                # Dashboard doesn't accept data_engine parameter
+                dashboard = dashboard_class()
+
             return dashboard
 
         except ImportError as e:
@@ -163,6 +170,8 @@ class MarketIntelligenceTabs(ui.View):
             return None
         except Exception as e:
             print(f"Error loading dashboard: {e}")
+            import traceback
+            traceback.print_exc()
             return None
 
     def _show_placeholder(self, tab_name):
