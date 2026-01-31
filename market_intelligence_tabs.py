@@ -44,7 +44,7 @@ class MarketIntelligenceTabs(ui.View):
             {'name': 'Poultry', 'icon': '🐔', 'module': 'poultry_dashboard', 'class': 'PoultryDashboard'},
             {'name': 'Eggs', 'icon': '🥚', 'module': 'egg_dashboard', 'class': 'EggDashboard'},
             {'name': 'Beef', 'icon': '🥩', 'module': 'beef_dairy_dashboard', 'class': 'BeefDashboard'},
-            {'name': 'Turkey', 'icon': '🦃', 'module': 'turkey_market_dashboard', 'class': 'TurkeyDashboard'},
+            {'name': 'Turkey', 'icon': '🦃', 'module': 'turkey_comprehensive_dashboard', 'class': 'TurkeyDashboard'},
             {'name': 'Storage', 'icon': '🧊', 'module': 'cold_storage_dashboard', 'class': 'ColdStorageDashboard'},
         ]
 

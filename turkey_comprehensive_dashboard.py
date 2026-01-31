@@ -536,7 +536,7 @@ def create_feed_costs_chart(feed, w, h):
 # ==================================================
 
 class TurkeyDashboard(ui.View):
-    def __init__(self):
+    def __init__(self, data_engine=None):
         super().__init__()
         self.background_color = '#000000'
         self.name = 'Turkey Market Dashboard'

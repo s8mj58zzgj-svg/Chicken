@@ -1107,7 +1107,7 @@ class ColdStorageAnalyzer:
 # ==================================================
 
 class ColdStorageDashboard(ui.View):
-    def __init__(self):
+    def __init__(self, data_engine=None):
         super().__init__()
         self.background_color = THEME['bg']
         self.name = 'USDA Cold Storage - Complete'
