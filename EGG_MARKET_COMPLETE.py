@@ -80,7 +80,7 @@ class DataEngine:
                 'limit': limit,
                 'sort_order': 'desc'
             }
-            r = self.session.get(url, params=params, timeout=8)
+            r = self.session.get(url, params=params, timeout=15)
 
             if r.status_code == 200:
                 data = r.json().get('observations', [])
@@ -535,10 +535,14 @@ class EggDashboard(ui.View):
             ui.ButtonItem(image=ui.Image.named('iob:ios7_refresh_empty_32'), action=self.refresh)
         ]
 
+    def did_load(self):
+        """Load data when view is loaded"""
+        print("📱 Dashboard loaded, starting data fetch...")
+        self.refresh(None)
+
     def will_appear(self):
-        """Load data when view appears"""
-        if self.data is None:
-            self.refresh(None)
+        """Called when view appears"""
+        pass
 
     def refresh(self, sender):
         """Refresh dashboard data - FORCE FRESH API FETCH"""
@@ -553,19 +557,47 @@ class EggDashboard(ui.View):
 
     def load_data(self):
         """Background data loading"""
-        market_data = self.data_engine.get_market_snapshot()
-        dates = self.data_engine.calculate_forecast_dates()
-        analyzer = EggMarketAnalyzer(market_data)
-        self.data = analyzer.calculate_metrics(dates)
-        ui.delay(self.draw_ui, 0)
+        try:
+            print("📊 Starting data fetch from APIs...")
+            market_data = self.data_engine.get_market_snapshot()
+            print("✓ Market snapshot complete")
+
+            dates = self.data_engine.calculate_forecast_dates()
+            print("✓ Dates calculated")
+
+            analyzer = EggMarketAnalyzer(market_data)
+            self.data = analyzer.calculate_metrics(dates)
+            print("✓ Analysis complete")
+
+            print("🎨 Scheduling UI update...")
+            ui.delay(self.draw_ui, 0)
+        except Exception as e:
+            print(f"❌ ERROR in load_data: {e}")
+            import traceback
+            traceback.print_exc()
+            # Still try to draw UI with whatever data we have
+            ui.delay(self.draw_ui, 0)
 
     def draw_ui(self):
         """Render dashboard UI"""
-        self.loading.stop()
-        w, h = ui.get_screen_size()
-        self.scroll.frame = (0, 0, w, h)
-        cw = w - (MARGIN * 2)
-        y = 40
+        print("🎨 Drawing UI...")
+        try:
+            self.loading.stop()
+
+            # If no data, show error
+            if self.data is None:
+                print("❌ No data available, cannot render")
+                self._show_error()
+                return
+
+            w, h = ui.get_screen_size()
+            self.scroll.frame = (0, 0, w, h)
+            cw = w - (MARGIN * 2)
+            y = 40
+        except Exception as e:
+            print(f"❌ ERROR in draw_ui setup: {e}")
+            self._show_error()
+            return
 
         # HEADER
         self._add_label("🥚 EGG MARKET COMMAND", 28, THEME['eggs'], y, cw, bold=True)
@@ -612,11 +644,14 @@ class EggDashboard(ui.View):
             y += 60
 
         # 1. LAYER FLOCK STATUS
-        y = HeaderLabel.create(self.scroll, "1. LAYER FLOCK STATUS", THEME['layer'], y, cw)
-        for k, v in self.data['flock'].items():
-            card, h = InsightCard.create(k, v, THEME['layer'], cw, y)
-            self.scroll.add_subview(card)
-            y += h + 15
+        try:
+            y = HeaderLabel.create(self.scroll, "1. LAYER FLOCK STATUS", THEME['layer'], y, cw)
+            for k, v in self.data.get('flock', {}).items():
+                card, h = InsightCard.create(k, v, THEME['layer'], cw, y)
+                self.scroll.add_subview(card)
+                y += h + 15
+        except Exception as e:
+            print(f"Error rendering flock section: {e}")
 
         # 2. HPAI & BIOSECURITY RISK
         y = HeaderLabel.create(self.scroll, "2. HPAI & BIOSECURITY RISK (CRITICAL)", THEME['risk'], y, cw)
@@ -706,6 +741,21 @@ class EggDashboard(ui.View):
         l.text_color = color
         l.alignment = ui.ALIGN_CENTER
         self.scroll.add_subview(l)
+
+    def _show_error(self):
+        """Show error message when data fails to load"""
+        self.loading.stop()
+        w, h = ui.get_screen_size()
+
+        error_label = ui.Label(frame=(40, h/2 - 60, w-80, 120))
+        error_label.text = "❌ DATA FETCH FAILED\n\nCould not load market data.\nCheck your internet connection.\n\nTap the refresh button to retry."
+        error_label.font = ('<system>', 16)
+        error_label.text_color = THEME['risk']
+        error_label.background_color = THEME['panel']
+        error_label.number_of_lines = 0
+        error_label.alignment = ui.ALIGN_CENTER
+        error_label.corner_radius = 8
+        self.scroll.add_subview(error_label)
 
 # ==================================================
 # MAIN ENTRY POINT
