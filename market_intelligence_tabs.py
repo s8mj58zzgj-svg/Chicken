@@ -213,13 +213,22 @@ class MarketIntelligenceTabs(ui.View):
         self.content_view.add_subview(error_view)
 
     def refresh_current(self, sender):
-        """Refresh current dashboard"""
+        """Refresh current dashboard - FORCE FRESH DATA"""
+        print("🔄 MARKET INTELLIGENCE REFRESH: Clearing cache...")
+        self.data_engine.clear_cache()  # Clear cache before refresh
+
         if self.current_tab is not None:
             tab_name = self.tabs[self.current_tab]['name']
             if tab_name in self.dashboards:
                 dashboard = self.dashboards[tab_name]
                 if hasattr(dashboard, 'refresh'):
                     dashboard.refresh(None)
+                else:
+                    # If dashboard doesn't have refresh method, reload it
+                    print(f"⚠️ {tab_name} dashboard doesn't support refresh - reloading entire view")
+                    # Force reload by clearing the cache entry and reloading
+                    del self.dashboards[tab_name]
+                    self.switch_to_tab(self.current_tab)
 
 
 if __name__ == '__main__':

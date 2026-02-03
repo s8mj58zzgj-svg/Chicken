@@ -124,24 +124,29 @@ class DataEngine:
         # Energy
         diesel_latest, diesel_hist = self.fetch_fred(FRED_SERIES['diesel'])
 
+        # NO FALLBACK PRICES - Return real data only
         snapshot = {
-            'beef_retail': {'current': beef_retail_latest if beef_retail_latest > 0 else 8.10, 'history': beef_retail_hist},
-            'ground_beef': {'current': ground_beef_latest if ground_beef_latest > 0 else 5.25, 'history': ground_beef_hist},
-            'beef_ppi': {'current': beef_ppi_latest if beef_ppi_latest > 0 else 245.0, 'history': beef_ppi_hist},
-            'feeder_cattle': {'current': feeder_latest if feeder_latest > 0 else 285.0, 'history': feeder_hist},
-            'live_cattle': {'current': live_cattle_latest if live_cattle_latest > 0 else 195.0, 'history': live_cattle_hist},
-            'milk': {'current': milk_latest if milk_latest > 0 else 4.15, 'history': milk_hist},
-            'cheese': {'current': cheese_latest if cheese_latest > 0 else 5.85, 'history': cheese_hist},
-            'butter': {'current': butter_latest if butter_latest > 0 else 4.25, 'history': butter_hist},
-            'corn': {'current': corn_latest if corn_latest > 0 else 215.0, 'history': corn_hist},
-            'soybean': {'current': soy_latest if soy_latest > 0 else 450.0, 'history': soy_hist},
-            'hay': {'current': hay_latest if hay_latest > 0 else 175.0, 'history': hay_hist},
-            'diesel': {'current': diesel_latest if diesel_latest > 0 else 3.85, 'history': diesel_hist},
+            'beef_retail': {'current': beef_retail_latest, 'history': beef_retail_hist, 'available': beef_retail_latest > 0},
+            'ground_beef': {'current': ground_beef_latest, 'history': ground_beef_hist, 'available': ground_beef_latest > 0},
+            'beef_ppi': {'current': beef_ppi_latest, 'history': beef_ppi_hist, 'available': beef_ppi_latest > 0},
+            'feeder_cattle': {'current': feeder_latest, 'history': feeder_hist, 'available': feeder_latest > 0},
+            'live_cattle': {'current': live_cattle_latest, 'history': live_cattle_hist, 'available': live_cattle_latest > 0},
+            'milk': {'current': milk_latest, 'history': milk_hist, 'available': milk_latest > 0},
+            'cheese': {'current': cheese_latest, 'history': cheese_hist, 'available': cheese_latest > 0},
+            'butter': {'current': butter_latest, 'history': butter_hist, 'available': butter_latest > 0},
+            'corn': {'current': corn_latest, 'history': corn_hist, 'available': corn_latest > 0},
+            'soybean': {'current': soy_latest, 'history': soy_hist, 'available': soy_latest > 0},
+            'hay': {'current': hay_latest, 'history': hay_hist, 'available': hay_latest > 0},
+            'diesel': {'current': diesel_latest, 'history': diesel_hist, 'available': diesel_latest > 0},
             'timestamp': datetime.datetime.now().strftime('%H:%M:%S'),
-            'date': datetime.date.today()
+            'date': datetime.date.today(),
+            'fresh_fetch': True
         }
 
-        print(f"✅ SNAPSHOT COMPLETE: beef_retail=${snapshot['beef_retail']['current']:.2f}")
+        if snapshot['beef_retail']['available']:
+            print(f"✅ SNAPSHOT COMPLETE: beef_retail=${snapshot['beef_retail']['current']:.2f} (LIVE DATA)")
+        else:
+            print(f"⚠️ SNAPSHOT COMPLETE: Some data unavailable (API error)")
         return snapshot
 
     def calculate_forecast_dates(self):
@@ -153,6 +158,12 @@ class DataEngine:
             'd180': (today + datetime.timedelta(days=180)).strftime("%b %d"),
             'today': today.strftime("%b %d, %Y")
         }
+
+    def clear_cache(self):
+        """Clear all cached data to force fresh API fetch"""
+        old_count = len(self.cache)
+        self.cache = {}
+        print(f"🔄 CACHE CLEARED - {old_count} entries removed. Next fetch will be FRESH from API.")
 
 print("✅ DataEngine CLASS DEFINED")
 

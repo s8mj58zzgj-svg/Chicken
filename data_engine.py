@@ -66,24 +66,26 @@ class DataEngine:
             return []
 
     def get_market_snapshot(self):
-        """Get comprehensive market snapshot"""
-        print(f"⚡ FETCHING MARKET DATA: {datetime.datetime.now().strftime('%H:%M:%S')}")
+        """Get comprehensive market snapshot - NO FALLBACK PRICES"""
+        print(f"⚡ FETCHING FRESH MARKET DATA: {datetime.datetime.now().strftime('%H:%M:%S')}")
 
-        # Fetch all key indicators in parallel concept
+        # Fetch all key indicators - NO FALLBACKS, real data only
         corn_latest, corn_hist = self.fetch_fred(FRED_SERIES['corn'])
         soy_latest, soy_hist = self.fetch_fred(FRED_SERIES['soybean'])
         diesel_latest, diesel_hist = self.fetch_fred(FRED_SERIES['diesel'])
         egg_ppi_latest, egg_ppi_hist = self.fetch_fred(FRED_SERIES['egg_price_index'])
         egg_retail_latest, egg_retail_hist = self.fetch_fred(FRED_SERIES['egg_retail'])
 
+        # Return REAL data only - 0.0 means API failed, will display as N/A in UI
         return {
-            'corn': {'current': corn_latest if corn_latest > 0 else 215.0, 'history': corn_hist},
-            'soybean': {'current': soy_latest if soy_latest > 0 else 450.0, 'history': soy_hist},
-            'diesel': {'current': diesel_latest if diesel_latest > 0 else 3.85, 'history': diesel_hist},
-            'egg_ppi': {'current': egg_ppi_latest if egg_ppi_latest > 0 else 165.0, 'history': egg_ppi_hist},
-            'egg_retail': {'current': egg_retail_latest if egg_retail_latest > 0 else 3.25, 'history': egg_retail_hist},
+            'corn': {'current': corn_latest, 'history': corn_hist, 'available': corn_latest > 0},
+            'soybean': {'current': soy_latest, 'history': soy_hist, 'available': soy_latest > 0},
+            'diesel': {'current': diesel_latest, 'history': diesel_hist, 'available': diesel_latest > 0},
+            'egg_ppi': {'current': egg_ppi_latest, 'history': egg_ppi_hist, 'available': egg_ppi_latest > 0},
+            'egg_retail': {'current': egg_retail_latest, 'history': egg_retail_hist, 'available': egg_retail_latest > 0},
             'timestamp': datetime.datetime.now().strftime('%H:%M:%S'),
-            'date': datetime.date.today()
+            'date': datetime.date.today(),
+            'fresh_fetch': True  # Indicates this was a new fetch, not cached
         }
 
     def calculate_forecast_dates(self):
@@ -95,3 +97,9 @@ class DataEngine:
             'd90': (today + datetime.timedelta(days=90)).strftime("%b %d"),
             'today': today.strftime("%b %d, %Y")
         }
+
+    def clear_cache(self):
+        """Clear all cached data to force fresh API fetch"""
+        old_count = len(self.cache)
+        self.cache = {}
+        print(f"🔄 CACHE CLEARED - {old_count} entries removed. Next fetch will be FRESH from API.")

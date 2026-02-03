@@ -14,15 +14,20 @@ class EggMarketAnalyzer:
         self.market_data = market_data
 
     def calculate_metrics(self, dates):
-        """Calculate comprehensive egg market metrics"""
+        """Calculate comprehensive egg market metrics - REAL DATA ONLY"""
         print(f"🥚 ANALYZING EGG MARKET: {self.market_data['timestamp']}")
 
-        # Get real data where available
+        # Get real data - NO FALLBACKS!
         corn_price = self.market_data['corn']['current']
         soy_price = self.market_data['soybean']['current']
         diesel_price = self.market_data['diesel']['current']
         egg_ppi = self.market_data['egg_ppi']['current']
         egg_retail = self.market_data['egg_retail']['current']
+
+        # Check data availability
+        data_available = self.market_data['egg_retail']['available']
+        corn_available = self.market_data['corn']['available']
+        soy_available = self.market_data['soybean']['available']
 
         # --- LAYER FLOCK DYNAMICS ---
         total_layers = 320.5  # Million layers (US)
@@ -37,11 +42,11 @@ class EggMarketAnalyzer:
         table_egg_pct = 92.0      # % for consumption
         hatching_egg_pct = 8.0    # % for hatching
 
-        # --- PRICE DYNAMICS ---
-        conventional_retail = egg_retail if egg_retail > 0 else 3.25
-        cage_free_premium = 0.85  # $/dozen premium
-        organic_premium = 2.10    # $/dozen premium
-        breaking_stock = 1.30     # $/dozen wholesale (USDA AMS Breaking Stock ~130¢/doz)
+        # --- PRICE DYNAMICS (LIVE DATA) ---
+        conventional_retail = egg_retail  # NO FALLBACK - show real data or N/A
+        cage_free_premium = 0.85  # $/dozen premium (historical average)
+        organic_premium = 2.10    # $/dozen premium (historical average)
+        breaking_stock = 1.30     # $/dozen wholesale (USDA AMS Breaking Stock ~130¢/doz - updated manually)
 
         # --- COLD STORAGE ---
         shell_storage = 42.5      # Million dozen
@@ -66,7 +71,13 @@ class EggMarketAnalyzer:
         return {
             'meta': {
                 'time': self.market_data['timestamp'],
-                'dates': dates
+                'dates': dates,
+                'data_status': {
+                    'egg_retail': data_available,
+                    'corn': corn_available,
+                    'soybean': soy_available,
+                    'fresh_fetch': self.market_data.get('fresh_fetch', False)
+                }
             },
 
             # 1. LAYER FLOCK STATUS
@@ -231,7 +242,10 @@ class EggDashboard(ui.View):
             self.refresh(None)
 
     def refresh(self, sender):
-        """Refresh dashboard data"""
+        """Refresh dashboard data - FORCE FRESH API FETCH"""
+        print("🔄 REFRESH: Clearing cache and fetching fresh data from APIs...")
+        self.data_engine.clear_cache()  # Clear cache to force fresh fetch
+
         self.loading.start()
         for sub in self.scroll.subviews:
             sub.remove_from_superview()
@@ -261,6 +275,43 @@ class EggDashboard(ui.View):
         ts = self.data['meta']['time']
         self._add_label(f"LAYER OPERATIONS + RETAIL + RISK ANALYSIS | {ts}", 12, THEME['sub'], y, cw)
         y += 40
+
+        # DATA STATUS BANNER
+        status = self.data['meta']['data_status']
+        if not status['egg_retail'] or not status['corn'] or not status['soybean']:
+            banner = ui.View(frame=(MARGIN, y, cw, 70))
+            banner.background_color = '#3d1a00'
+            banner.border_color = THEME['warn']
+            banner.border_width = 2
+            banner.corner_radius = 8
+
+            warn_label = ui.Label(frame=(10, 5, cw-20, 60))
+            warn_label.number_of_lines = 0
+            warn_label.font = ('<system-bold>', 13)
+            warn_label.text_color = THEME['warn']
+            missing = []
+            if not status['egg_retail']: missing.append('Egg Retail')
+            if not status['corn']: missing.append('Corn')
+            if not status['soybean']: missing.append('Soybean')
+            warn_label.text = f"⚠️ DATA WARNING\nMissing live data for: {', '.join(missing)}\nTap refresh button to retry API fetch"
+            banner.add_subview(warn_label)
+            self.scroll.add_subview(banner)
+            y += 85
+        else:
+            # Data OK banner
+            banner = ui.View(frame=(MARGIN, y, cw, 45))
+            banner.background_color = '#002200'
+            banner.border_color = THEME['bull']
+            banner.border_width = 1
+            banner.corner_radius = 6
+
+            ok_label = ui.Label(frame=(10, 5, cw-20, 35))
+            ok_label.font = ('<system>', 12)
+            ok_label.text_color = THEME['bull']
+            ok_label.text = f"✓ LIVE DATA | Fetched at {ts} | All APIs responding"
+            banner.add_subview(ok_label)
+            self.scroll.add_subview(banner)
+            y += 60
 
         # 1. LAYER FLOCK STATUS
         y = HeaderLabel.create(self.scroll, "1. LAYER FLOCK STATUS", THEME['layer'], y, cw)
