@@ -535,14 +535,11 @@ class EggDashboard(ui.View):
             ui.ButtonItem(image=ui.Image.named('iob:ios7_refresh_empty_32'), action=self.refresh)
         ]
 
-    def did_load(self):
-        """Load data when view is loaded"""
-        print("📱 Dashboard loaded, starting data fetch...")
-        self.refresh(None)
-
     def will_appear(self):
-        """Called when view appears"""
-        pass
+        """Load data when view appears - ONLY ON FIRST LOAD"""
+        if self.data is None:
+            print("📱 Dashboard appearing for first time, starting initial data fetch...")
+            self.refresh(None)
 
     def refresh(self, sender):
         """Refresh dashboard data - FORCE FRESH API FETCH"""
