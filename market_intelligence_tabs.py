@@ -54,10 +54,11 @@ class MarketIntelligenceTabs(ui.View):
             ui.ButtonItem(image=ui.Image.named('iob:ios7_refresh_empty_32'), action=self.refresh_current)
         ]
 
-    def did_load(self):
+    def will_appear(self):
         """Setup UI when view loads"""
-        self.setup_tabs()
-        self.switch_to_tab(0)
+        if not self.tab_buttons:  # Only setup once
+            self.setup_tabs()
+            self.switch_to_tab(0)
 
     def layout(self):
         """Layout subviews"""
