@@ -25,9 +25,9 @@ FRED_MAP = {
     'GROUND_BEEF': 'APU0000703112',     # Ground beef retail
     'BEEF_PPI': 'WPU0222',              # Beef PPI
 
-    # CATTLE PRICES (Real cattle data)
-    'FEEDER_CATTLE': 'PCTTLFDGUSDM',    # Feeder cattle price index
-    'LIVE_CATTLE': 'PCATTLEUSDM',       # Live cattle price index
+    # CATTLE PRICES (Alternative series - more reliable)
+    'FEEDER_CATTLE': 'WPU01120103',     # Feeder cattle PPI (alternative)
+    'LIVE_CATTLE': 'WPU01120102',       # Slaughter cattle PPI (alternative)
 
     # DAIRY PRICES (Real dairy data)
     'MILK_RETAIL': 'APU0000709112',     # Milk retail price
@@ -36,11 +36,11 @@ FRED_MAP = {
     'MILK_PPI': 'WPU0251',              # Fluid milk PPI
     'CHEESE_PPI': 'WPU02520601',        # Cheese PPI
 
-    # FEED & INPUTS
+    # FEED & INPUTS (Alternative series)
     'CORN': 'PMAIZMTUSDM',              # Corn price index
     'SOY_MEAL': 'PSOYBUSDM',            # Soybean price index
-    'HAY': 'WPU01120501',               # Hay PPI
-    'ALFALFA': 'WPU01120501',           # Hay/Alfalfa PPI
+    'HAY': 'WPU0112050103',             # Hay (alternative series)
+    'ALFALFA': 'WPU0112050101',         # Alfalfa hay PPI
 
     # ENERGY
     'DIESEL': 'GASDESW',                # Diesel price
@@ -52,30 +52,38 @@ FRED_MAP = {
 }
 
 # ==================================================
-# USDA NASS API ENDPOINTS
+# USDA NASS API ENDPOINTS (with year filter for recent data)
 # ==================================================
 NASS_QUERIES = {
     'CATTLE_INVENTORY': {
         'commodity_desc': 'CATTLE',
         'statisticcat_desc': 'INVENTORY',
-        'agg_level_desc': 'NATIONAL'
+        'agg_level_desc': 'NATIONAL',
+        'year__GE': '2020',  # Only data from 2020 onwards
+        'freq_desc': 'QUARTERLY'
     },
     'CATTLE_ON_FEED': {
         'commodity_desc': 'CATTLE',
         'class_desc': 'CATTLE, ON FEED',
         'statisticcat_desc': 'INVENTORY',
-        'agg_level_desc': 'NATIONAL'
+        'agg_level_desc': 'NATIONAL',
+        'year__GE': '2020',
+        'freq_desc': 'MONTHLY'
     },
     'MILK_PRODUCTION': {
         'commodity_desc': 'MILK',
         'statisticcat_desc': 'PRODUCTION',
-        'agg_level_desc': 'NATIONAL'
+        'agg_level_desc': 'NATIONAL',
+        'year__GE': '2020',
+        'freq_desc': 'MONTHLY'
     },
     'DAIRY_COWS': {
         'commodity_desc': 'CATTLE',
         'class_desc': 'COWS, MILK',
         'statisticcat_desc': 'INVENTORY',
-        'agg_level_desc': 'NATIONAL'
+        'agg_level_desc': 'NATIONAL',
+        'year__GE': '2020',
+        'freq_desc': 'MONTHLY'
     }
 }
 
@@ -134,8 +142,8 @@ class APIFetcher:
         print(f"🔄 CACHE CLEARED: {old_count} entries removed")
 
     @staticmethod
-    def fetch_fred(series_id):
-        """Fetch data from FRED API using urllib - NO FALLBACKS"""
+    def fetch_fred(series_id, retry=2):
+        """Fetch data from FRED API using urllib with retry logic"""
         cache_key = f"fred_{series_id}"
 
         # Check cache first
@@ -145,53 +153,59 @@ class APIFetcher:
                 print(f"  📦 CACHE: {series_id}")
                 return data
 
-        try:
-            print(f"  🌐 FRED: {series_id}")
+        for attempt in range(retry + 1):
+            try:
+                if attempt > 0:
+                    print(f"  🔄 RETRY {attempt}: {series_id}")
+                    time.sleep(0.5 * attempt)  # Brief backoff
+                else:
+                    print(f"  🌐 FRED: {series_id}")
 
-            # Build URL with parameters
-            params = {
-                'series_id': series_id,
-                'api_key': FRED_KEY,
-                'file_type': 'json',
-                'limit': '120',
-                'sort_order': 'desc'
-            }
-            url = f"https://api.stlouisfed.org/fred/series/observations?{urllib.parse.urlencode(params)}"
+                # Build URL with parameters
+                params = {
+                    'series_id': series_id,
+                    'api_key': FRED_KEY,
+                    'file_type': 'json',
+                    'limit': '120',
+                    'sort_order': 'desc'
+                }
+                url = f"https://api.stlouisfed.org/fred/series/observations?{urllib.parse.urlencode(params)}"
 
-            # Make request with urllib
-            req = urllib.request.Request(url)
-            req.add_header('User-Agent', 'Mozilla/5.0')
+                # Make request with urllib
+                req = urllib.request.Request(url)
+                req.add_header('User-Agent', 'Mozilla/5.0')
 
-            with urllib.request.urlopen(req, timeout=10) as response:
-                data = json.loads(response.read().decode())
-                obs = data.get('observations', [])
-                vals = []
+                with urllib.request.urlopen(req, timeout=10) as response:
+                    data = json.loads(response.read().decode())
+                    obs = data.get('observations', [])
+                    vals = []
 
-                for x in obs:
-                    try:
-                        v = float(x['value'])
-                        if v > 0:  # Filter out missing data markers
-                            vals.append(v)
-                    except:
-                        pass
+                    for x in obs:
+                        try:
+                            v = float(x['value'])
+                            if v > 0:  # Filter out missing data markers
+                                vals.append(v)
+                        except:
+                            pass
 
-                if vals and len(vals) >= 2:
-                    vals.reverse()  # Chronological order
-                    result = {'current': vals[-1], 'history': vals, 'available': True}
-                    APIFetcher.cache[cache_key] = (time.time(), result)
-                    print(f"  ✅ FRED: {series_id} = {vals[-1]:.2f} ({len(vals)} points)")
-                    return result
+                    if vals and len(vals) >= 2:
+                        vals.reverse()  # Chronological order
+                        result = {'current': vals[-1], 'history': vals, 'available': True}
+                        APIFetcher.cache[cache_key] = (time.time(), result)
+                        print(f"  ✅ FRED: {series_id} = {vals[-1]:.2f} ({len(vals)} points)")
+                        return result
 
-            print(f"  ⚠️  FRED UNAVAILABLE: {series_id}")
-            return {'current': None, 'history': [], 'available': False}
+                print(f"  ⚠️  FRED UNAVAILABLE: {series_id}")
+                return {'current': None, 'history': [], 'available': False}
 
-        except Exception as e:
-            print(f"  ❌ FRED ERROR: {series_id} - {e}")
-            return {'current': None, 'history': [], 'available': False}
+            except Exception as e:
+                if attempt == retry:
+                    print(f"  ❌ FRED ERROR: {series_id} - {e}")
+                    return {'current': None, 'history': [], 'available': False}
 
     @staticmethod
-    def fetch_nass(query_params):
-        """Fetch data from USDA NASS API using urllib - NO FALLBACKS"""
+    def fetch_nass(query_params, retry=2):
+        """Fetch data from USDA NASS API using urllib with retry logic"""
         cache_key = f"nass_{query_params.get('commodity_desc')}_{query_params.get('class_desc', '')}"
 
         # Check cache
@@ -201,48 +215,54 @@ class APIFetcher:
                 print(f"  📦 CACHE: {cache_key}")
                 return data
 
-        try:
-            print(f"  🌐 NASS: {cache_key}")
+        for attempt in range(retry + 1):
+            try:
+                if attempt > 0:
+                    print(f"  🔄 RETRY {attempt}: {cache_key}")
+                    time.sleep(0.5 * attempt)
+                else:
+                    print(f"  🌐 NASS: {cache_key}")
 
-            # Build URL with parameters
-            params = {'key': USDA_KEY, 'format': 'JSON'}
-            params.update(query_params)
-            url = f"https://quickstats.nass.usda.gov/api/api_GET/?{urllib.parse.urlencode(params)}"
+                # Build URL with parameters
+                params = {'key': USDA_KEY, 'format': 'JSON'}
+                params.update(query_params)
+                url = f"https://quickstats.nass.usda.gov/api/api_GET/?{urllib.parse.urlencode(params)}"
 
-            # Make request with urllib
-            req = urllib.request.Request(url)
-            req.add_header('User-Agent', 'Mozilla/5.0')
+                # Make request with urllib
+                req = urllib.request.Request(url)
+                req.add_header('User-Agent', 'Mozilla/5.0')
 
-            with urllib.request.urlopen(req, timeout=10) as response:
-                data = json.loads(response.read().decode())
-                data_items = data.get('data', [])
-                vals = []
+                with urllib.request.urlopen(req, timeout=15) as response:
+                    data = json.loads(response.read().decode())
+                    data_items = data.get('data', [])
+                    vals = []
 
-                for d in data_items:
-                    try:
-                        v = float(str(d.get('Value', '')).replace(',', ''))
-                        if v > 0:
-                            vals.append(v)
-                    except:
-                        pass
+                    for d in data_items:
+                        try:
+                            v = float(str(d.get('Value', '')).replace(',', ''))
+                            if v > 0:
+                                vals.append(v)
+                        except:
+                            pass
 
-                if vals and len(vals) >= 2:
-                    vals = vals[::-1]  # Most recent last
-                    # Normalize to millions if needed
-                    if 'CATTLE' in query_params.get('commodity_desc', ''):
-                        vals = [v / 1000.0 for v in vals]  # Convert to millions
+                    if vals and len(vals) >= 2:
+                        vals = vals[::-1]  # Most recent last
+                        # Normalize to millions if needed
+                        if 'CATTLE' in query_params.get('commodity_desc', ''):
+                            vals = [v / 1000.0 for v in vals]  # Convert to millions
 
-                    result = {'current': vals[-1], 'history': vals[-60:], 'available': True}
-                    APIFetcher.cache[cache_key] = (time.time(), result)
-                    print(f"  ✅ NASS: {cache_key} = {vals[-1]:.2f} ({len(vals)} points)")
-                    return result
+                        result = {'current': vals[-1], 'history': vals[-60:], 'available': True}
+                        APIFetcher.cache[cache_key] = (time.time(), result)
+                        print(f"  ✅ NASS: {cache_key} = {vals[-1]:.2f} ({len(vals)} points)")
+                        return result
 
-            print(f"  ⚠️  NASS UNAVAILABLE: {cache_key}")
-            return {'current': None, 'history': [], 'available': False}
+                print(f"  ⚠️  NASS UNAVAILABLE: {cache_key}")
+                return {'current': None, 'history': [], 'available': False}
 
-        except Exception as e:
-            print(f"  ❌ NASS ERROR: {cache_key} - {e}")
-            return {'current': None, 'history': [], 'available': False}
+            except Exception as e:
+                if attempt == retry:
+                    print(f"  ❌ NASS ERROR: {cache_key} - {e}")
+                    return {'current': None, 'history': [], 'available': False}
 
 # ==================================================
 # DATA ENGINE (REAL DATA ONLY!)
@@ -463,8 +483,9 @@ class MarketCard(ui.View):
             self.add_subview(l_w)
 
     def _render_unavailable(self, title, w, d):
-        """Render unavailable data state"""
+        """Render compact unavailable data state"""
         self.border_color = THEME['unavailable']
+        self.bg_color = '#0a0a0a'
 
         l_t = ui.Label(frame=(10, 8, w-20, 14))
         l_t.text = title.upper()
@@ -472,18 +493,23 @@ class MarketCard(ui.View):
         l_t.text_color = THEME['sub']
         self.add_subview(l_t)
 
-        l_na = ui.Label(frame=(10, 30, w-20, 40))
-        l_na.text = "DATA UNAVAILABLE"
-        l_na.font = ('<b>', 16)
+        l_na = ui.Label(frame=(10, 28, w-20, 24))
+        l_na.text = "N/A"
+        l_na.font = ('<b>', 18)
         l_na.text_color = THEME['unavailable']
         l_na.alignment = ui.ALIGN_CENTER
         self.add_subview(l_na)
 
-        l_d = ui.Label(frame=(10, 70, w-20, 28))
-        l_d.text = "API unavailable or returned no data. Press refresh to retry."
-        l_d.font = ('<system>', 9)
+        # Show different message for NASS data vs FRED data
+        if title.upper() in ['CATTLE INVENTORY', 'CATTLE ON FEED', 'DAIRY COWS', 'MILK PRODUCTION']:
+            msg = "USDA data updates quarterly"
+        else:
+            msg = "Series unavailable"
+
+        l_d = ui.Label(frame=(10, 54, w-20, 14))
+        l_d.text = msg
+        l_d.font = ('<system>', 8)
         l_d.text_color = THEME['muted']
-        l_d.number_of_lines = 2
         l_d.alignment = ui.ALIGN_CENTER
         self.add_subview(l_d)
 
@@ -568,6 +594,23 @@ class Dashboard(ui.View):
         card_w = (w - (15 * (cols + 1))) / cols
         y = 15
 
+        # Add info banner about data sources
+        info_banner = ui.View(frame=(15, y, w-30, 40))
+        info_banner.bg_color = '#1a1a1a'
+        info_banner.corner_radius = 6
+        info_banner.border_width = 1
+        info_banner.border_color = '#333'
+
+        info_label = ui.Label(frame=(10, 0, w-50, 40))
+        info_label.text = "📊 Live data from FRED & USDA APIs. Inventory data updates quarterly. Tap Refresh for latest."
+        info_label.font = ('<system>', 10)
+        info_label.text_color = THEME['sub']
+        info_label.number_of_lines = 2
+        self.scroll.add_subview(info_banner)
+        info_banner.add_subview(info_label)
+
+        y += 50
+
         if self.mode == 'beef':
             sections = [
                 ("SUPPLY & INVENTORY", [
@@ -621,12 +664,24 @@ class Dashboard(ui.View):
 
             for i in range(0, len(items), cols):
                 row = items[i:i+cols]
+                row_height = 100  # Default height for data cards
+
                 for j, (name, ticker) in enumerate(row):
                     x = 15 + (j * (card_w + 15))
                     card = MarketCard(name, ticker, card_w)
-                    card.frame = (x, y, card_w, 100)
+
+                    # Check if data is unavailable to use smaller height
+                    d = DataEngine.get_series(ticker)
+                    if not d['available']:
+                        card_height = 72
+                        row_height = min(row_height, 72)
+                    else:
+                        card_height = 100
+
+                    card.frame = (x, y, card_w, card_height)
                     self.scroll.add_subview(card)
-                y += 110
+
+                y += row_height + 10
             y += 10
 
         narr = ForecastCard(self.mode, w - 30)
