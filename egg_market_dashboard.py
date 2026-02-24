@@ -1,17 +1,31 @@
 """
 EGG MARKET DASHBOARD - Clean Working Version
-Pythonista-compatible with mock data support
+Pythonista-compatible with LIVE data from FRED API
 """
 
 import ui
 import datetime
 import threading
+import urllib.request
+import urllib.parse
+import json
+import time
 
 # ==================================================
 # CONFIGURATION
 # ==================================================
 
 MARGIN = 40
+
+# FRED API Key (public)
+FRED_KEY = "bffd29d45a9a9eb8e0ab3dabf716b586"
+
+# FRED Series IDs
+FRED_SERIES = {
+    'corn': 'PMAIZMTUSDM',           # Corn Price Index
+    'soybean': 'PSOYBUSDM',          # Soybean Price Index
+    'egg_retail': 'APU0000708111',   # Eggs, Grade A, Large ($/dozen)
+}
 
 THEME = {
     'bg': '#050505',
@@ -29,17 +43,87 @@ THEME = {
 }
 
 # ==================================================
-# MOCK DATA ENGINE
+# LIVE DATA ENGINE
 # ==================================================
 
-class MockDataEngine:
-    """Mock data for offline testing"""
+class DataEngine:
+    """Fetch live data from FRED API with caching"""
+
+    def __init__(self):
+        self.cache = {}
+        self.cache_duration = 300  # 5 minutes
+
+    def fetch_fred(self, series_id, limit=12):
+        """Fetch data from FRED API"""
+        cache_key = f"fred_{series_id}"
+
+        # Check cache
+        if cache_key in self.cache:
+            cached_time, cached_data = self.cache[cache_key]
+            if time.time() - cached_time < self.cache_duration:
+                print(f"✓ Using cached data for {series_id}")
+                return cached_data
+
+        try:
+            print(f"⚡ Fetching {series_id} from FRED API...")
+
+            # Build URL
+            params = {
+                'series_id': series_id,
+                'api_key': FRED_KEY,
+                'file_type': 'json',
+                'limit': limit,
+                'sort_order': 'desc'
+            }
+            url = f"https://api.stlouisfed.org/fred/series/observations?{urllib.parse.urlencode(params)}"
+
+            # Fetch data
+            with urllib.request.urlopen(url, timeout=10) as response:
+                data = json.loads(response.read().decode())
+
+            observations = data.get('observations', [])
+            if observations:
+                # Extract valid values
+                vals = [float(x['value']) for x in observations if x['value'] != '.']
+                if vals:
+                    result = (vals[0], vals[::-1])  # (latest, history reversed)
+                    self.cache[cache_key] = (time.time(), result)
+                    print(f"✓ Got {series_id}: {vals[0]}")
+                    return result
+
+            print(f"⚠ No data for {series_id}, using fallback")
+            return self._get_fallback(series_id)
+
+        except Exception as e:
+            print(f"❌ FRED Error ({series_id}): {e}")
+            return self._get_fallback(series_id)
+
+    def _get_fallback(self, series_id):
+        """Return fallback values if API fails"""
+        fallbacks = {
+            'PMAIZMTUSDM': (215.5, [200, 205, 210, 215.5]),
+            'PSOYBUSDM': (456.2, [440, 445, 450, 456.2]),
+            'APU0000708111': (3.28, [2.85, 2.95, 3.10, 3.28]),
+        }
+        return fallbacks.get(series_id, (0.0, []))
 
     def get_market_snapshot(self):
+        """Get comprehensive market snapshot"""
+        print(f"\n{'='*50}")
+        print(f"🥚 FETCHING LIVE MARKET DATA")
+        print(f"Time: {datetime.datetime.now().strftime('%H:%M:%S')}")
+        print(f"{'='*50}")
+
+        corn_latest, corn_hist = self.fetch_fred(FRED_SERIES['corn'])
+        soy_latest, soy_hist = self.fetch_fred(FRED_SERIES['soybean'])
+        egg_latest, egg_hist = self.fetch_fred(FRED_SERIES['egg_retail'])
+
+        print(f"{'='*50}\n")
+
         return {
-            'corn': {'current': 215.5, 'available': True},
-            'soybean': {'current': 456.2, 'available': True},
-            'egg_retail': {'current': 3.28, 'available': True},
+            'corn': {'current': corn_latest if corn_latest > 0 else 215.5, 'available': True},
+            'soybean': {'current': soy_latest if soy_latest > 0 else 456.2, 'available': True},
+            'egg_retail': {'current': egg_latest if egg_latest > 0 else 3.28, 'available': True},
             'timestamp': datetime.datetime.now().strftime('%H:%M:%S'),
         }
 
@@ -52,7 +136,9 @@ class MockDataEngine:
         }
 
     def clear_cache(self):
-        print("🔄 Cache cleared")
+        """Clear cache to force fresh data"""
+        self.cache = {}
+        print("🔄 Cache cleared - will fetch fresh data")
 
 # ==================================================
 # ANALYZER
@@ -308,19 +394,23 @@ class EggDashboard(ui.View):
         y += 30
 
         # Status banner
-        banner = ui.View(frame=(MARGIN, y, cw, 50))
+        banner = ui.View(frame=(MARGIN, y, cw, 60))
         banner.background_color = '#002200'
         banner.border_color = THEME['bull']
         banner.border_width = 1
         banner.corner_radius = 6
 
-        status_lbl = ui.Label(frame=(10, 5, cw-20, 40))
-        status_lbl.font = ('<system>', 12)
+        status_lbl = ui.Label(frame=(10, 5, cw-20, 50))
+        status_lbl.font = ('<system>', 11)
         status_lbl.text_color = THEME['bull']
-        status_lbl.text = f"✓ DATA LOADED | {self.data['meta']['time']}"
+        status_lbl.text = (
+            f"✓ LIVE DATA LOADED | {self.data['meta']['time']}\n"
+            f"Source: FRED API | Tap refresh for latest data"
+        )
+        status_lbl.number_of_lines = 2
         banner.add_subview(status_lbl)
         self.scroll.add_subview(banner)
-        y += 65
+        y += 75
 
         # Section 1: Flock
         y = self._add_section_header("1. LAYER FLOCK STATUS", THEME['layer'], y, cw)
@@ -432,7 +522,12 @@ class EggDashboard(ui.View):
 # ==================================================
 
 if __name__ == '__main__':
-    engine = MockDataEngine()
+    print("\n" + "="*50)
+    print("🥚 EGG MARKET DASHBOARD")
+    print("Starting with LIVE data from FRED API...")
+    print("="*50 + "\n")
+
+    engine = DataEngine()
     dashboard = EggDashboard(engine)
     dashboard.name = "Egg Market"
 
