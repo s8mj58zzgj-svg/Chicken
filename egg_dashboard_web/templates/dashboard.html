@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Egg Market Intelligence Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --bg: #050508;
+    --surface: #0d0d12;
+    --card: #12121a;
+    --border: #1e1e2a;
+    --text: #e0e0e8;
+    --sub: #6b6b80;
+    --bull: #00ff88;
+    --bear: #ff4455;
+    --warn: #ffaa00;
+    --eggs: #ffdd44;
+    --layer: #ff6b9d;
+    --risk: #ff3344;
+    --cold: #00ccff;
+    --logistics: #ff9900;
+    --macro: #aa55ff;
+    --gold: #ffd700;
+    --accent: #00ccff;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+}
+
+/* ===== LAYOUT ===== */
+.container { max-width: 1400px; margin: 0 auto; padding: 20px 30px 60px; }
+
+.header {
+    text-align: center;
+    padding: 40px 0 30px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 30px;
+}
+.header h1 { font-size: 36px; color: var(--eggs); font-weight: 800; letter-spacing: 1px; }
+.header .subtitle { color: var(--sub); font-size: 14px; margin-top: 8px; letter-spacing: 2px; text-transform: uppercase; }
+.header .timestamp { color: var(--accent); font-size: 13px; margin-top: 12px; font-family: 'SF Mono', 'Menlo', monospace; }
+
+/* ===== STATUS BAR ===== */
+.status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #001a0d, #002211);
+    border: 1px solid #004422;
+    border-radius: 10px;
+    padding: 14px 24px;
+    margin-bottom: 30px;
+}
+.status-bar .status-text { color: var(--bull); font-size: 13px; font-family: monospace; }
+.status-bar .status-dot { width: 8px; height: 8px; background: var(--bull); border-radius: 50%; animation: pulse 2s infinite; margin-right: 10px; display: inline-block; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+.refresh-btn {
+    background: transparent;
+    border: 1px solid var(--bull);
+    color: var(--bull);
+    padding: 8px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+.refresh-btn:hover { background: var(--bull); color: black; }
+.refresh-btn:disabled { opacity: 0.5; cursor: wait; }
+
+/* ===== TOP CARDS ===== */
+.top-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 30px;
+}
+.price-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    transition: border-color 0.2s;
+}
+.price-card:hover { border-color: #333; }
+.price-card .label { font-size: 11px; color: var(--sub); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
+.price-card .value { font-size: 28px; font-weight: 800; color: white; }
+.price-card .unit { font-size: 12px; color: var(--sub); margin-left: 4px; }
+.price-card .change { font-size: 13px; font-weight: 600; margin-top: 6px; }
+.price-card .change.up { color: var(--bull); }
+.price-card .change.down { color: var(--bear); }
+.price-card .change.flat { color: var(--sub); }
+
+/* ===== SECTION HEADERS ===== */
+.section-header {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 20px 0 12px;
+    margin-top: 10px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 18px;
+}
+
+/* ===== CHART GRID ===== */
+.chart-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+.chart-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+}
+.chart-card h3 { font-size: 14px; color: var(--sub); margin-bottom: 16px; letter-spacing: 1px; text-transform: uppercase; }
+.chart-card canvas { width: 100% !important; height: 220px !important; }
+
+/* ===== INSIGHT GRID ===== */
+.insight-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 30px;
+}
+.insight-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    position: relative;
+}
+.insight-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+.insight-card .card-title { font-size: 13px; font-weight: 700; letter-spacing: 1px; }
+.insight-card .badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.insight-card .card-value { font-size: 26px; font-weight: 800; color: white; margin-bottom: 8px; }
+.insight-card .card-value .unit { font-size: 13px; color: var(--sub); font-weight: 400; }
+.insight-card .card-text { font-size: 13px; color: #999; line-height: 1.6; }
+
+/* ===== FORECAST TABLE ===== */
+.forecast-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+}
+.forecast-table th {
+    text-align: left;
+    font-size: 11px;
+    color: var(--sub);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+}
+.forecast-table td {
+    padding: 16px;
+    border-bottom: 1px solid #111;
+    font-size: 14px;
+}
+.forecast-table tr:hover td { background: #0a0a12; }
+.forecast-table .product { font-weight: 700; color: white; }
+.forecast-table .spot { color: white; font-weight: 600; font-size: 16px; }
+.forecast-table .target { font-weight: 700; font-size: 16px; }
+.forecast-table .trend-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+}
+.forecast-table .logic { color: var(--sub); font-size: 12px; max-width: 320px; }
+
+/* ===== STORAGE BAR ===== */
+.storage-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 30px;
+}
+.storage-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+}
+.storage-card .storage-label { font-size: 12px; color: var(--sub); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.storage-card .storage-value { font-size: 24px; font-weight: 800; color: white; margin-bottom: 4px; }
+.storage-card .storage-status { font-size: 11px; font-weight: 700; letter-spacing: 1px; }
+.storage-bar-track { height: 8px; background: #1a1a2a; border-radius: 4px; margin-top: 12px; overflow: hidden; }
+.storage-bar-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
+
+/* ===== VERDICT ===== */
+.verdict-card {
+    background: linear-gradient(135deg, #1a1200, #1a0d00);
+    border: 1px solid #332200;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+.verdict-card h2 { font-size: 18px; color: var(--warn); margin-bottom: 20px; letter-spacing: 1px; }
+.verdict-signals {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+}
+.signal-item {
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    padding: 14px 18px;
+}
+.signal-item .signal-label { font-size: 11px; color: var(--sub); text-transform: uppercase; letter-spacing: 1px; }
+.signal-item .signal-action { font-size: 18px; font-weight: 800; margin: 4px 0; }
+.signal-item .signal-target { font-size: 12px; color: #999; }
+.verdict-summary { font-size: 14px; color: #bbb; line-height: 1.8; border-top: 1px solid #332200; padding-top: 20px; }
+
+/* ===== LOADING ===== */
+.loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5,5,8,0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+.loading-overlay.hidden { display: none; }
+.spinner {
+    width: 50px; height: 50px;
+    border: 3px solid var(--border);
+    border-top-color: var(--eggs);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===== FOOTER ===== */
+.footer {
+    text-align: center;
+    padding: 30px 0;
+    border-top: 1px solid var(--border);
+    color: var(--sub);
+    font-size: 12px;
+    letter-spacing: 1px;
+}
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+    <div style="text-align:center">
+        <div class="spinner"></div>
+        <div style="color: var(--eggs); margin-top: 20px; font-size: 14px;">LOADING MARKET DATA...</div>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- HEADER -->
+    <div class="header">
+        <h1>&#x1F95A; EGG MARKET INTELLIGENCE</h1>
+        <div class="subtitle">Professional Market Analysis &amp; Forecasting</div>
+        <div class="timestamp" id="timestamp">Loading...</div>
+    </div>
+
+    <!-- STATUS BAR -->
+    <div class="status-bar">
+        <div>
+            <span class="status-dot"></span>
+            <span class="status-text" id="statusText">Connecting to FRED API...</span>
+        </div>
+        <button class="refresh-btn" id="refreshBtn" onclick="refreshData()">&#x21BB; REFRESH DATA</button>
+    </div>
+
+    <!-- TOP PRICE CARDS -->
+    <div class="top-cards" id="topCards"></div>
+
+    <!-- PRICE CHARTS -->
+    <div class="section-header" style="color: var(--eggs);">PRICE TRENDS</div>
+    <div class="chart-grid" id="chartGrid">
+        <div class="chart-card"><h3>Egg Retail Price ($/dozen)</h3><canvas id="chartEggRetail"></canvas></div>
+        <div class="chart-card"><h3>Egg PPI Index</h3><canvas id="chartEggPPI"></canvas></div>
+        <div class="chart-card"><h3>Corn Price Index</h3><canvas id="chartCorn"></canvas></div>
+        <div class="chart-card"><h3>Soybean Price Index</h3><canvas id="chartSoy"></canvas></div>
+    </div>
+
+    <!-- FLOCK STATUS -->
+    <div class="section-header" style="color: var(--layer);">1. LAYER FLOCK STATUS</div>
+    <div class="insight-grid" id="flockGrid"></div>
+
+    <!-- HPAI -->
+    <div class="section-header" style="color: var(--risk);">2. HPAI RISK (CRITICAL)</div>
+    <div class="insight-grid" id="hpaiGrid"></div>
+
+    <!-- COSTS -->
+    <div class="section-header" style="color: var(--logistics);">3. PRODUCTION COSTS</div>
+    <div class="insight-grid" id="costsGrid"></div>
+
+    <!-- COLD STORAGE -->
+    <div class="section-header" style="color: var(--cold);">4. COLD STORAGE</div>
+    <div class="storage-grid" id="storageGrid"></div>
+
+    <!-- FORECASTS -->
+    <div class="section-header" style="color: var(--bull);">5. 90-DAY PRICE FORECASTS</div>
+    <table class="forecast-table" id="forecastTable">
+        <thead><tr>
+            <th>Product</th><th>Spot Price</th><th>30d</th><th>60d</th><th>90d Target</th><th>Trend</th><th>Logic</th>
+        </tr></thead>
+        <tbody id="forecastBody"></tbody>
+    </table>
+
+    <!-- VERDICT -->
+    <div class="section-header" style="color: var(--warn);">6. ANALYST VERDICT</div>
+    <div class="verdict-card" id="verdictCard"></div>
+
+    <div class="footer">
+        DATA SOURCE: FRED (Federal Reserve Economic Data) &bull; REAL-TIME API &bull; AUTO-REFRESH AVAILABLE
+    </div>
+</div>
+
+<script>
+// ===== CHART CONFIG =====
+Chart.defaults.color = '#666';
+Chart.defaults.borderColor = '#1e1e2a';
+
+const chartInstances = {};
+
+function makeChart(canvasId, labels, values, color, fill) {
+    const ctx = document.getElementById(canvasId);
+    if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
+
+    const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 220);
+    gradient.addColorStop(0, color + '40');
+    gradient.addColorStop(1, color + '00');
+
+    chartInstances[canvasId] = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels.map(d => {
+                const dt = new Date(d);
+                return dt.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+            }),
+            datasets: [{
+                data: values,
+                borderColor: color,
+                backgroundColor: fill ? gradient : 'transparent',
+                borderWidth: 2.5,
+                pointRadius: 3,
+                pointBackgroundColor: color,
+                tension: 0.3,
+                fill: fill,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { color: '#111' }, ticks: { font: { size: 10 } } },
+                y: { grid: { color: '#111' }, ticks: { font: { size: 10 } } },
+            }
+        }
+    });
+}
+
+// ===== RENDER FUNCTIONS =====
+
+function renderTopCards(prices) {
+    const cards = [
+        { key: 'egg_retail', label: 'EGG RETAIL', color: '#ffdd44' },
+        { key: 'cage_free', label: 'CAGE-FREE', color: '#ff6b9d' },
+        { key: 'organic', label: 'ORGANIC', color: '#aa55ff' },
+        { key: 'egg_ppi', label: 'EGG PPI', color: '#00ccff' },
+        { key: 'corn', label: 'CORN', color: '#ff9900' },
+        { key: 'soybean', label: 'SOYBEAN', color: '#ffaa00' },
+        { key: 'diesel', label: 'DIESEL', color: '#ff5555' },
+    ];
+
+    document.getElementById('topCards').innerHTML = cards.map(c => {
+        const p = prices[c.key];
+        const chgClass = p.change > 0 ? 'up' : p.change < 0 ? 'down' : 'flat';
+        const chgSign = p.change > 0 ? '+' : '';
+        const prefix = p.unit.includes('$') ? '$' : '';
+        const displayVal = p.unit.includes('$') ? p.value.toFixed(2) : p.value.toFixed(1);
+
+        return `<div class="price-card" style="border-left: 3px solid ${c.color}">
+            <div class="label">${c.label}</div>
+            <div class="value">${prefix}${displayVal}<span class="unit">${p.unit.replace('$/', '/')}</span></div>
+            <div class="change ${chgClass}">${chgSign}${p.change}% vs prior</div>
+        </div>`;
+    }).join('');
+}
+
+function renderFlock(flock) {
+    const items = [
+        { title: 'TOTAL LAYERS', value: `${flock.total_layers}M`, unit: 'Birds', status: 'TIGHT', color: 'var(--layer)',
+          text: `Flock recovering from HPAI. Pullet placements ${flock.pullet_placements}% YoY. Continued tightness.` },
+        { title: 'CAGE-FREE TRANSITION', value: `${flock.cage_free_pct}%`, unit: 'of Flock', status: 'ACCELERATING', color: 'var(--layer)',
+          text: '9 states mandate cage-free by 2026. Conversion costs $1,850/bird. Capital crunch for small farms.' },
+        { title: 'FLOCK PRODUCTIVITY', value: `${(flock.eggs_per_day * 100).toFixed(0)}%`, unit: 'Lay Rate', status: 'PEAK', color: 'var(--layer)',
+          text: `${flock.eggs_per_day} eggs/bird/day. Biology maxed out — only growth is more birds.` },
+        { title: 'HATCHABILITY', value: `${flock.hatchability}%`, unit: 'Rate', status: 'CRITICAL', color: 'var(--bear)',
+          text: `Normal = 84%. Missing 4-5 chicks per 100 eggs. Breeder genetics bottleneck. No quick fix.` },
+    ];
+    document.getElementById('flockGrid').innerHTML = items.map(i => makeInsightCard(i)).join('');
+}
+
+function renderHPAI(hpai) {
+    const items = [
+        { title: 'BIRD FLU THREAT', value: hpai.risk_level, unit: 'Risk', status: 'CRITICAL', color: 'var(--risk)',
+          text: `${hpai.birds_depopulated}M culled across ${hpai.commercial_outbreaks} commercial sites. One major farm = instant price spike.` },
+        { title: 'SUPPLY VULNERABILITY', value: 'EXTREME', unit: 'Fragility', status: 'BLACK SWAN', color: 'var(--risk)',
+          text: `Top ${hpai.top50_share} farms = ${hpai.top50_share}% of supply. One outbreak = shelves empty in 48 hours.` },
+        { title: 'BIOSECURITY PREMIUM', value: '+$0.20', unit: '$/doz', status: 'BAKED IN', color: 'var(--warn)',
+          text: 'Consumers pay for protocols, vaccines, insurance. This cost premium never goes away.' },
+    ];
+    document.getElementById('hpaiGrid').innerHTML = items.map(i => makeInsightCard(i)).join('');
+}
+
+function renderCosts(costs, prices) {
+    const items = [
+        { title: 'ANNUAL FEED COST', value: `$${costs.annual_feed}`, unit: '/bird/year', status: 'ELEVATED', color: 'var(--logistics)',
+          text: `Corn ${prices.corn.value.toFixed(0)}, Soy ${prices.soybean.value.toFixed(0)}. Layers eat for 18 months vs broilers 6 weeks.` },
+        { title: 'FEED COST PER DOZEN', value: `$${costs.feed_per_dozen}`, unit: 'Feed Only', status: 'FLOOR', color: 'var(--logistics)',
+          text: `Just feed. Add housing, labor, transport → retail cannot go below $${costs.min_retail}/doz.` },
+        { title: 'CAGE-FREE DELTA', value: `+$${costs.cage_free_delta}`, unit: '$/doz', status: 'STRUCTURAL', color: 'var(--warn)',
+          text: '40% more space, lower density = permanently higher production costs.' },
+    ];
+    document.getElementById('costsGrid').innerHTML = items.map(i => makeInsightCard(i)).join('');
+}
+
+function renderStorage(storage) {
+    const shell = storage.shell_eggs;
+    const frozen = storage.frozen;
+    const shellPct = Math.round((shell.value / shell.normal) * 100);
+    const frozenPct = Math.round((frozen.value / frozen.normal) * 100);
+
+    document.getElementById('storageGrid').innerHTML = `
+        <div class="storage-card">
+            <div class="storage-label">SHELL EGG INVENTORY</div>
+            <div class="storage-value">${shell.value} ${shell.unit}</div>
+            <div class="storage-status" style="color: var(--warn)">${shell.status} (Normal: ${shell.normal} ${shell.unit})</div>
+            <div class="storage-bar-track"><div class="storage-bar-fill" style="width: ${shellPct}%; background: ${shellPct < 80 ? 'var(--warn)' : 'var(--bull)'}"></div></div>
+        </div>
+        <div class="storage-card">
+            <div class="storage-label">FROZEN EGG PRODUCTS</div>
+            <div class="storage-value">${frozen.value} ${frozen.unit}</div>
+            <div class="storage-status" style="color: var(--cold)">${frozen.status} (Normal: ${frozen.normal} ${frozen.unit})</div>
+            <div class="storage-bar-track"><div class="storage-bar-fill" style="width: ${frozenPct}%; background: var(--cold)"></div></div>
+        </div>
+    `;
+}
+
+function renderForecasts(forecasts, dates) {
+    const rows = [
+        { name: 'Conventional (Large)', key: 'conventional' },
+        { name: 'Cage-Free', key: 'cage_free' },
+        { name: 'Organic', key: 'organic' },
+        { name: 'Breaking Stock', key: 'breaking_stock' },
+    ];
+
+    document.getElementById('forecastBody').innerHTML = rows.map(r => {
+        const f = forecasts[r.key];
+        const trendColor = f.trend.includes('BULL') || f.trend.includes('BUY') ? 'var(--bull)' :
+                          f.trend.includes('BEAR') ? 'var(--bear)' : 'var(--warn)';
+        const targetColor = f.targets[2] > f.current ? 'var(--bull)' : 'var(--bear)';
+        const delta = (((f.targets[2] - f.current) / f.current) * 100).toFixed(1);
+
+        return `<tr>
+            <td class="product">${r.name}</td>
+            <td class="spot">$${f.current.toFixed(2)}</td>
+            <td>$${f.targets[0].toFixed(2)}</td>
+            <td>$${f.targets[1].toFixed(2)}</td>
+            <td class="target" style="color: ${targetColor}">$${f.targets[2].toFixed(2)} <span style="font-size:12px">(+${delta}%)</span></td>
+            <td><span class="trend-badge" style="background: ${trendColor}; color: black">${f.trend}</span></td>
+            <td class="logic">${f.logic}</td>
+        </tr>`;
+    }).join('');
+}
+
+function renderVerdict(verdict) {
+    const actionColors = {
+        'BUY': 'var(--bull)', 'STRONG BUY': 'var(--bull)',
+        'HEDGE': 'var(--warn)', 'MONITOR': 'var(--cold)',
+        'SELL': 'var(--bear)', 'AVOID': 'var(--bear)',
+    };
+
+    document.getElementById('verdictCard').innerHTML = `
+        <h2>&#x26A0;&#xFE0F; ${verdict.title}</h2>
+        <div class="verdict-signals">
+            ${verdict.signals.map(s => `
+                <div class="signal-item">
+                    <div class="signal-label">${s.label}</div>
+                    <div class="signal-action" style="color: ${actionColors[s.action] || 'white'}">${s.action}</div>
+                    <div class="signal-target">${s.target}</div>
+                </div>
+            `).join('')}
+        </div>
+        <div class="verdict-summary">${verdict.summary}</div>
+    `;
+}
+
+function makeInsightCard(item) {
+    const statusBg = item.status === 'CRITICAL' || item.status === 'BLACK SWAN' ? 'var(--risk)' :
+                     item.status === 'ELEVATED' || item.status === 'FLOOR' || item.status === 'STRUCTURAL' ? 'var(--warn)' :
+                     item.color;
+    return `<div class="insight-card">
+        <div class="card-header">
+            <div class="card-title" style="color: ${item.color}">${item.title}</div>
+            <span class="badge" style="background: ${statusBg}; color: black">${item.status}</span>
+        </div>
+        <div class="card-value">${item.value} <span class="unit">${item.unit}</span></div>
+        <div class="card-text">${item.text}</div>
+    </div>`;
+}
+
+// ===== DATA LOADING =====
+
+async function loadData(endpoint) {
+    document.getElementById('loadingOverlay').classList.remove('hidden');
+    document.getElementById('refreshBtn').disabled = true;
+
+    try {
+        const resp = await fetch(endpoint);
+        const data = await resp.json();
+
+        document.getElementById('timestamp').textContent = `${data.date} | ${data.timestamp}`;
+        document.getElementById('statusText').textContent =
+            `LIVE DATA | ${data.timestamp} | Source: FRED API | Next auto-refresh: 5 min`;
+
+        renderTopCards(data.prices);
+
+        if (data.charts.egg_retail.labels.length)
+            makeChart('chartEggRetail', data.charts.egg_retail.labels, data.charts.egg_retail.values, '#ffdd44', true);
+        if (data.charts.egg_ppi.labels.length)
+            makeChart('chartEggPPI', data.charts.egg_ppi.labels, data.charts.egg_ppi.values, '#00ccff', true);
+        if (data.charts.corn.labels.length)
+            makeChart('chartCorn', data.charts.corn.labels, data.charts.corn.values, '#ff9900', true);
+        if (data.charts.soybean.labels.length)
+            makeChart('chartSoy', data.charts.soybean.labels, data.charts.soybean.values, '#ffaa00', true);
+
+        renderFlock(data.flock);
+        renderHPAI(data.hpai);
+        renderCosts(data.costs, data.prices);
+        renderStorage(data.storage);
+        renderForecasts(data.forecasts, data.forecast_dates);
+        renderVerdict(data.verdict);
+
+    } catch (err) {
+        document.getElementById('statusText').textContent = `ERROR: ${err.message} — tap refresh`;
+        document.getElementById('statusText').style.color = 'var(--bear)';
+    } finally {
+        document.getElementById('loadingOverlay').classList.add('hidden');
+        document.getElementById('refreshBtn').disabled = false;
+    }
+}
+
+function refreshData() { loadData('/api/refresh'); }
+
+// Initial load
+loadData('/api/data');
+
+// Auto-refresh every 5 minutes
+setInterval(() => loadData('/api/data'), 5 * 60 * 1000);
+</script>
+</body>
+</html>
