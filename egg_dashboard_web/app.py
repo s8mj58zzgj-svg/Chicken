@@ -40,7 +40,7 @@ class DataEngine:
         self.cache = {}
         self.cache_duration = 300
 
-    def fetch_fred(self, series_id, limit=24):
+    def fetch_fred(self, series_id, limit=500):
         cache_key = f"fred_{series_id}"
         if cache_key in self.cache:
             ts, data = self.cache[cache_key]
@@ -56,7 +56,7 @@ class DataEngine:
                 'sort_order': 'desc',
             }
             url = f"https://api.stlouisfed.org/fred/series/observations?{urlencode(params)}"
-            with urlopen(url, timeout=12) as resp:
+            with urlopen(url, timeout=15) as resp:
                 raw = json.loads(resp.read().decode())
 
             obs = raw.get('observations', [])
@@ -91,7 +91,7 @@ class DataEngine:
             return data[0]['value'] if data else fallback
 
         def history(data):
-            return list(reversed(data[:12]))
+            return list(reversed(data[:36]))
 
         corn_val = latest(corn, 215.0)
         soy_val = latest(soy, 450.0)
