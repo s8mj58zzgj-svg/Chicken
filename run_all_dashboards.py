@@ -159,7 +159,9 @@ def dashboard(name):
     if not file_path.exists():
         return f"Dashboard file not found: {DASHBOARDS[name]}", 404
 
-    return send_file(file_path)
+    with open(file_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+    return content
 
 def open_browser():
     """Open browser after short delay"""
