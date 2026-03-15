@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Institutional Poultry Intelligence Platform | C-Suite Commodity Analytics</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+    --bg-primary: #0a0e1a;
+    --bg-secondary: #141824;
+    --bg-tertiary: #1e2433;
+    --bg-card: #252d3f;
+    --border-color: #2d3548;
+    --text-primary: #e8eaed;
+    --text-secondary: #a0a5b8;
+    --text-muted: #6b7280;
+    --accent-red: #ff4444;
+    --accent-green: #00ff88;
+    --accent-blue: #4da6ff;
+    --accent-yellow: #ffd700;
+    --accent-orange: #ff8c42;
+}
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    font-size: 13px;
+}
+header {
+    background: linear-gradient(135deg, #1a1f2e 0%, #0f1419 100%);
+    padding: 24px 40px;
+    border-bottom: 2px solid var(--accent-blue);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent-blue);
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+}
+.subtitle {
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 400;
+}
+.container {
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: 30px;
+}
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 24px;
+    margin-bottom: 30px;
+}
+.card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+.card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.badge-live {
+    background: rgba(0, 255, 136, 0.2);
+    color: var(--accent-green);
+}
+.badge-alert {
+    background: rgba(255, 68, 68, 0.2);
+    color: var(--accent-red);
+}
+.badge-hot {
+    background: rgba(255, 140, 66, 0.2);
+    color: var(--accent-orange);
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+}
+th {
+    text-align: left;
+    padding: 12px 8px;
+    background: var(--bg-tertiary);
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+td {
+    padding: 12px 8px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 13px;
+}
+.price-up {
+    color: var(--accent-green);
+}
+.price-down {
+    color: var(--accent-red);
+}
+.metric-box {
+    background: var(--bg-tertiary);
+    padding: 16px;
+    border-radius: 8px;
+    margin: 8px 0;
+}
+.metric-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+.metric-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+.metric-change {
+    font-size: 12px;
+    margin-top: 4px;
+}
+.section-header {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent-yellow);
+    margin: 40px 0 20px 0;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--accent-yellow);
+}
+.subsection-header {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--accent-blue);
+    margin: 24px 0 12px 0;
+}
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin-top: 20px;
+}
+.full-width {
+    grid-column: 1 / -1;
+}
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+.spec-item {
+    background: var(--bg-tertiary);
+    padding: 12px;
+    border-radius: 6px;
+    margin: 6px 0;
+    border-left: 3px solid var(--accent-blue);
+}
+.spec-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+.spec-detail {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+.alert-banner {
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.2) 0%, rgba(255, 140, 66, 0.1) 100%);
+    border: 1px solid var(--accent-orange);
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.alert-icon {
+    font-size: 24px;
+}
+</style>
+</head>
+<body>
+
+<header>
+    <h1>🐔 INSTITUTIONAL POULTRY INTELLIGENCE PLATFORM</h1>
+    <div class="subtitle">C-Suite Commodity Analytics • Real-Time Market Intelligence • March 15, 2026</div>
+</header>
+
+<div class="container">
+    
+    <!-- EXECUTIVE SUMMARY -->
+    <div class="alert-banner">
+        <div class="alert-icon">⚡</div>
+        <div>
+            <strong>MARKET ALERT:</strong> Boneless/skinless breasts up +$0.18/lb to $1.62 (+12.5%) on strong foodservice demand. Wing market softening post-Super Bowl. Integrator margins expanding on lower feed costs.
+        </div>
+    </div>
+
+    <!-- KEY METRICS DASHBOARD -->
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Whole Bird Composite (Medium)</div>
+                <span class="badge badge-live">LIVE</span>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">WOG Northeast (¢/lb)</div>
+                <div class="metric-value">82.5¢</div>
+                <div class="metric-change price-up">+2.8¢ (+3.5%) Today | +6.2¢ (+8.1%) Week</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Boneless/Skinless Breast</div>
+                <span class="badge badge-alert">🔥 HOT</span>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">B/S Breast ($/lb)</div>
+                <div class="metric-value">$1.62</div>
+                <div class="metric-change price-up">+$0.18 (+12.5%) Today | +$0.45 (+38.5%) Week</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Jumbo Wings</div>
+                <span class="badge badge-hot">COOLING</span>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">Jumbo Wings ($/lb)</div>
+                <div class="metric-value">$2.15</div>
+                <div class="metric-change price-down">-$0.32 (-13.0%) Today | -$0.58 (-21.2%) Week</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 1: WHOLE BIRD (WOG) PRICING -->
+    <h2 class="section-header">🐓 SECTION 1: WHOLE BIRD (WOG) PRICING BY WEIGHT CLASS</h2>
+    
+    <div class="card full-width">
+        <div class="card-header">
+            <div class="card-title">National WOG Pricing - All Weight Classes (¢/lb)</div>
+            <span class="badge badge-live">LIVE QUOTES</span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Weight Class</th>
+                    <th>Avg Weight</th>
+                    <th>NE Price</th>
+                    <th>SE Price</th>
+                    <th>Midwest Price</th>
+                    <th>Daily Δ</th>
+                    <th>Weekly Δ</th>
+                    <th>Market Share</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Cornish Game Hen</strong></td>
+                    <td>1.0-1.5 lbs</td>
+                    <td>95.0¢</td>
+                    <td>92.5¢</td>
+                    <td>93.8¢</td>
+                    <td class="price-up">+1.5¢</td>
+                    <td class="price-up">+4.2¢</td>
+                    <td>2%</td>
+                </tr>
+                <tr>
+                    <td><strong>Small Broiler</strong></td>
+                    <td>2.0-2.5 lbs</td>
+                    <td>88.5¢</td>
+                    <td>86.0¢</td>
+                    <td>87.2¢</td>
+                    <td class="price-up">+2.2¢</td>
+                    <td class="price-up">+5.8¢</td>
+                    <td>8%</td>
+                </tr>
+                <tr style="background: rgba(77, 166, 255, 0.1);">
+                    <td><strong>Medium Broiler</strong></td>
+                    <td>2.75-3.5 lbs</td>
+                    <td>82.5¢</td>
+                    <td>80.0¢</td>
+                    <td>81.2¢</td>
+                    <td class="price-up">+2.8¢</td>
+                    <td class="price-up">+6.2¢</td>
+                    <td>45%</td>
+                </tr>
+                <tr>
+                    <td><strong>Large Broiler</strong></td>
+                    <td>4.0-5.0 lbs</td>
+                    <td>78.0¢</td>
+                    <td>75.5¢</td>
+                    <td>76.8¢</td>
+                    <td class="price-up">+2.5¢</td>
+                    <td class="price-up">+5.5¢</td>
+                    <td>28%</td>
+                </tr>
+                <tr>
+                    <td><strong>Roaster</strong></td>
+                    <td>5.5-7.0 lbs</td>
+                    <td>85.0¢</td>
+                    <td>82.5¢</td>
+                    <td>83.8¢</td>
+                    <td class="price-up">+3.0¢</td>
+                    <td class="price-up">+7.2¢</td>
+                    <td>12%</td>
+                </tr>
+                <tr>
+                    <td><strong>Jumbo Roaster</strong></td>
+                    <td>8.0-10.0 lbs</td>
+                    <td>92.5¢</td>
+                    <td>90.0¢</td>
+                    <td>91.2¢</td>
+                    <td class="price-up">+3.5¢</td>
+                    <td class="price-up">+8.8¢</td>
+                    <td>5%</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Regional WOG Basis (vs NE)</div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Region</th>
+                        <th>Basis</th>
+                        <th>Trend</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Northeast (Base)</td>
+                        <td>0.0¢</td>
+                        <td>—</td>
+                    </tr>
+                    <tr>
+                        <td>Southeast</td>
+                        <td class="price-down">-2.5¢</td>
+                        <td>▼</td>
+                    </tr>
+                    <tr>
+                        <td>Midwest</td>
+                        <td class="price-down">-1.3¢</td>
+                        <td>►</td>
+                    </tr>
+                    <tr>
+                        <td>Southwest</td>
+                        <td class="price-down">-3.8¢</td>
+                        <td>▼</td>
+                    </tr>
+                    <tr>
+                        <td>West Coast</td>
+                        <td class="price-up">+4.2¢</td>
+                        <td>▲</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">WOG Production Metrics</div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>This Week</th>
+                        <th>vs LY</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Weekly Slaughter</td>
+                        <td>168.2M hd</td>
+                        <td class="price-up">+2.4%</td>
+                    </tr>
+                    <tr>
+                        <td>Avg Live Weight</td>
+                        <td>6.48 lbs</td>
+                        <td class="price-up">+1.8%</td>
+                    </tr>
+                    <tr>
+                        <td>Total Prod (M lbs)</td>
+                        <td>1,090M</td>
+                        <td class="price-up">+4.3%</td>
+                    </tr>
+                    <tr>
+                        <td>Dressed Yield</td>
+                        <td>74.2%</td>
+                        <td>+0.1%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">WOG Market Share by Class</div>
+            </div>
+            <div class="chart-container" style="height: 200px;">
+                <canvas id="wogShareChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 2: 8-PC / 9-PC CUTS -->
+    <h2 class="section-header">✂️ SECTION 2: 8-PIECE / 9-PIECE CUT SPECIFICATIONS</h2>
+
+    <div class="card full-width">
+        <div class="card-header">
+            <div class="card-title">8-Piece Cut Pricing ($/lb)</div>
+            <span class="badge badge-live">LIVE</span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Cut</th>
+                    <th>Specification</th>
+                    <th>NE Price</th>
+                    <th>SE Price</th>
+                    <th>Daily Δ</th>
+                    <th>Weekly Δ</th>
+                    <th>Yield %</th>
+                    <th>Key Markets</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Breast Quarters</strong></td>
+                    <td>Bone-in w/ back portion</td>
+                    <td>$0.88</td>
+                    <td>$0.85</td>
+                    <td class="price-up">+$0.03</td>
+                    <td class="price-up">+$0.08</td>
+                    <td>38%</td>
+                    <td>Export, Retail</td>
+                </tr>
+                <tr>
+                    <td><strong>Leg Quarters</strong></td>
+                    <td>Thigh + Drumstick attached</td>
+                    <td>$0.52</td>
+                    <td>$0.50</td>
+                    <td class="price-up">+$0.02</td>
+                    <td class="price-up">+$0.04</td>
+                    <td>32%</td>
+                    <td>Export (Russia, Africa)</td>
+                </tr>
+                <tr>
+                    <td><strong>Wings (Attached)</strong></td>
+                    <td>Whole wing 3-joint</td>
+                    <td>$1.85</td>
+                    <td>$1.82</td>
+                    <td class="price-down">-$0.28</td>
+                    <td class="price-down">-$0.52</td>
+                    <td>11%</td>
+                    <td>Foodservice, Retail</td>
+                </tr>
+                <tr>
+                    <td><strong>Back</strong></td>
+                    <td>With or without neck</td>
+                    <td>$0.18</td>
+                    <td>$0.16</td>
+                    <td>$0.00</td>
+                    <td class="price-up">+$0.01</td>
+                    <td>19%</td>
+                    <td>Further Processing, MDM</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card full-width">
+        <div class="card-header">
+            <div class="card-title">9-Piece Cut Pricing ($/lb)</div>
+            <span class="badge badge-live">LIVE</span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Cut</th>
+                    <th>Specification</th>
+                    <th>NE Price</th>
+                    <th>SE Price</th>
+                    <th>Daily Δ</th>
+                    <th>Weekly Δ</th>
+                    <th>Yield %</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Breast (Bone-In)</strong></td>
+                    <td>Split breast w/ ribs</td>
+                    <td>$1.12</td>
+                    <td>$1.08</td>
+                    <td class="price-up">+$0.04</td>
+                    <td class="price-up">+$0.11</td>
+                    <td>28%</td>
+                </tr>
+                <tr>
+                    <td><strong>Thighs (Bone-In)</strong></td>
+                    <td>With back portion attached</td>
+                    <td>$0.78</td>
+                    <td>$0.75</td>
+                    <td class="price-up">+$0.02</td>
+                    <td class="price-up">+$0.06</td>
+                    <td>16%</td>
+                </tr>
+                <tr>
+                    <td><strong>Drumsticks</strong></td>
+                    <td>Lower leg portion</td>
+                    <td>$0.62</td>
+                    <td>$0.59</td>
+                    <td class="price-up">+$0.02</td>
+                    <td class="price-up">+$0.05</td>
+                    <td>16%</td>
+                </tr>
+                <tr>
+                    <td><strong>Wings (3-Joint)</strong></td>
+                    <td>Whole wing</td>
+                    <td>$1.85</td>
+                    <td>$1.82</td>
+                    <td class="price-down">-$0.28</td>
+                    <td class="price-down">-$0.52</td>
+                    <td>11%</td>
+                </tr>
+                <tr>
+                    <td><strong>Back/Neck</strong></td>
+                    <td>Attached or separated</td>
+                    <td>$0.18</td>
+                    <td>$0.16</td>
+                    <td>$0.00</td>
+                    <td class="price-up">+$0.01</td>
+                    <td>19%</td>
+                </tr>
+                <tr>
+                    <td><strong>Giblets</strong></td>
+                    <td>Heart, liver, gizzard</td>
+                    <td>$0.35</td>
+                    <td>$0.32</td>
+                    <td>+$0.01</td>
+                    <td>+$0.02</td>
+                    <td>4%</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- SECTION 3: BREAST VARIATIONS -->
+    <h2 class="section-header">🥩 SECTION 3: BREAST VARIATIONS & SPECIFICATIONS</h2>
+
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Boneless/Skinless Breast</div>
+                <span class="badge badge-alert">🔥 HOT MARKET</span>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">B/S Breast Fillets - Small (4-6 oz)</div>
+                <div class="spec-detail">Price: $1.72/lb | Daily: +$0.22 (+14.7%) | Weekly: +$0.52 (+43.3%)</div>
+                <div class="spec-detail">⚡ HIGHEST DEMAND | Foodservice recovery | QSR ramp-up | Yield: 22%</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">B/S Breast Fillets - Medium (6-8 oz)</div>
+                <div class="spec-detail">Price: $1.62/lb | Daily: +$0.18 (+12.5%) | Weekly: +$0.45 (+38.5%)</div>
+                <div class="spec-detail">🔥 BENCHMARK CUT | Restaurant chains bidding aggressively | Yield: 23%</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">B/S Breast Fillets - Large (8-10 oz)</div>
+                <div class="spec-detail">Price: $1.55/lb | Daily: +$0.15 (+10.7%) | Weekly: +$0.38 (+32.5%)</div>
+                <div class="spec-detail">Retail strength | Deli/prepared foods | Yield: 24%</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">B/S Breast Fillets - Jumbo (10-12 oz)</div>
+                <div class="spec-detail">Price: $1.48/lb | Daily: +$0.12 (+8.8%) | Weekly: +$0.32 (+27.6%)</div>
+                <div class="spec-detail">Premium retail | Portion control less critical | Yield: 25%</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Bone-In Breast Variations</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Bone-In Split Breast w/ Ribs</div>
+                <div class="spec-detail">Price: $1.12/lb | Daily: +$0.04 (+3.7%) | Weekly: +$0.11 (+10.9%)</div>
+                <div class="spec-detail">Traditional retail | Value pricing | Yield: 28%</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Bone-In Breast (Ribless)</div>
+                <div class="spec-detail">Price: $1.28/lb | Daily: +$0.05 (+4.1%) | Weekly: +$0.14 (+12.3%)</div>
+                <div class="spec-detail">Premium presentation | Higher yield: 31%</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Airline Breast (Frenched)</div>
+                <div class="spec-detail">Price: $2.15/lb | Daily: +$0.08 (+3.9%) | Weekly: +$0.22 (+11.4%)</div>
+                <div class="spec-detail">Upscale foodservice | Presentation cut | Yield: 20%</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Skin-On Boneless Breast</div>
+                <div class="spec-detail">Price: $1.85/lb | Daily: +$0.12 (+6.9%) | Weekly: +$0.35 (+23.3%)</div>
+                <div class="spec-detail">Growing segment | Home cooking trend | Yield: 23%</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Tenderloins (Tenders)</div>
+                <span class="badge badge-live">LIVE</span>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Chicken Tenders - Whole</div>
+                <div class="spec-detail">Price: $2.95/lb | Daily: +$0.15 (+5.4%) | Weekly: +$0.42 (+16.6%)</div>
+                <div class="spec-detail">Top SKU | QSR/Fast Casual | Kids menu staple | Yield: 3.5%</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Chicken Tenders - Trimmed</div>
+                <div class="spec-detail">Price: $3.15/lb | Daily: +$0.18 (+6.1%) | Weekly: +$0.48 (+18.0%)</div>
+                <div class="spec-detail">Premium product | Uniform appearance | Yield: 3.2%</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Breaded Tenders (RTC)</div>
+                <div class="spec-detail">Price: $4.25/lb | Daily: +$0.22 (+5.5%) | Weekly: +$0.58 (+15.8%)</div>
+                <div class="spec-detail">Value-added | Retail frozen | Foodservice volume</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 4: WING SPECIFICATIONS -->
+    <h2 class="section-header">🍗 SECTION 4: WING MARKET - SIZE CLASSES & SECTIONS</h2>
+
+    <div class="card full-width">
+        <div class="card-header">
+            <div class="card-title">Wings by Size Class - Whole Wing Pricing ($/lb)</div>
+            <span class="badge badge-hot">POST-SUPER BOWL COOLING</span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Size Class</th>
+                    <th>Piece Count/lb</th>
+                    <th>Current Price</th>
+                    <th>Daily Δ</th>
+                    <th>Weekly Δ</th>
+                    <th>Monthly Δ</th>
+                    <th>Market Share</th>
+                    <th>Key Buyers</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Jumbo Wings</strong></td>
+                    <td>4-5 pcs/lb</td>
+                    <td>$2.15</td>
+                    <td class="price-down">-$0.32 (-13.0%)</td>
+                    <td class="price-down">-$0.58 (-21.2%)</td>
+                    <td class="price-down">-$0.82 (-27.6%)</td>
+                    <td>25%</td>
+                    <td>Premium Sports Bars, Upscale Chains</td>
+                </tr>
+                <tr style="background: rgba(77, 166, 255, 0.1);">
+                    <td><strong>Large Wings</strong></td>
+                    <td>5-6 pcs/lb</td>
+                    <td>$1.92</td>
+                    <td class="price-down">-$0.28 (-12.7%)</td>
+                    <td class="price-down">-$0.48 (-20.0%)</td>
+                    <td class="price-down">-$0.68 (-26.1%)</td>
+                    <td>35%</td>
+                    <td>Major Chains (BWW, Wingstop), QSR</td>
+                </tr>
+                <tr>
+                    <td><strong>Medium Wings</strong></td>
+                    <td>6-7 pcs/lb</td>
+                    <td>$1.68</td>
+                    <td class="price-down">-$0.22 (-11.6%)</td>
+                    <td class="price-down">-$0.38 (-18.4%)</td>
+                    <td class="price-down">-$0.52 (-23.6%)</td>
+                    <td>28%</td>
+                    <td>Regional Chains, Independent Restaurants</td>
+                </tr>
+                <tr>
+                    <td><strong>Small Wings</strong></td>
+                    <td>7-9 pcs/lb</td>
+                    <td>$1.35</td>
+                    <td class="price-down">-$0.18 (-11.8%)</td>
+                    <td class="price-down">-$0.28 (-17.2%)</td>
+                    <td class="price-down">-$0.38 (-22.0%)</td>
+                    <td>12%</td>
+                    <td>Value Operators, Further Processing</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Wing Sections - Jumbo Size</div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Section</th>
+                        <th>Price</th>
+                        <th>Weekly Δ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Whole Wing (3-joint)</td>
+                        <td>$2.15/lb</td>
+                        <td class="price-down">-$0.58</td>
+                    </tr>
+                    <tr>
+                        <td>Wingettes (Flats)</td>
+                        <td>$2.55/lb</td>
+                        <td class="price-down">-$0.68</td>
+                    </tr>
+                    <tr>
+                        <td>Drumettes</td>
+                        <td>$2.25/lb</td>
+                        <td class="price-down">-$0.52</td>
+                    </tr>
+                    <tr>
+                        <td>Wing Tips</td>
+                        <td>$0.22/lb</td>
+                        <td class="price-down">-$0.04</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Wing Sections - Medium Size</div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Section</th>
+                        <th>Price</th>
+                        <th>Weekly Δ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Whole Wing (3-joint)</td>
+                        <td>$1.68/lb</td>
+                        <td class="price-down">-$0.38</td>
+                    </tr>
+                    <tr>
+                        <td>Wingettes (Flats)</td>
+                        <td>$2.05/lb</td>
+                        <td class="price-down">-$0.45</td>
+                    </tr>
+                    <tr>
+                        <td>Drumettes</td>
+                        <td>$1.82/lb</td>
+                        <td class="price-down">-$0.38</td>
+                    </tr>
+                    <tr>
+                        <td>Wing Tips</td>
+                        <td>$0.18/lb</td>
+                        <td class="price-down">-$0.03</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Wing Market Seasonality</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Q1: Super Bowl Peak</div>
+                <div class="spec-detail">Jan-Feb: Peak demand (+45% vs baseline) | March correction typical</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Q2: Spring Shoulder</div>
+                <div class="spec-detail">Apr-Jun: Moderate demand | March Madness mini-spike</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Q3: Summer Sports</div>
+                <div class="spec-detail">Jul-Sep: Steady | Labor Day weekend bump</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Q4: Fall Build-Up</div>
+                <div class="spec-detail">Oct-Dec: NFL season ramp | Thanksgiving spike | Christmas events</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 5: DARK MEAT SPECIFICATIONS -->
+    <h2 class="section-header">🍖 SECTION 5: DARK MEAT SPECIFICATIONS</h2>
+
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Thigh Specifications</div>
+                <span class="badge badge-live">LIVE</span>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Bone-In Skin-On Thighs</div>
+                <div class="spec-detail">Price: $0.78/lb | Daily: +$0.02 (+2.6%) | Weekly: +$0.06 (+8.3%)</div>
+                <div class="spec-detail">Traditional retail | Value pricing | Yield from carcass: 16%</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Boneless Skinless Thighs</div>
+                <div class="spec-detail">Price: $1.42/lb | Daily: +$0.05 (+3.6%) | Weekly: +$0.14 (+10.9%)</div>
+                <div class="spec-detail">Growing demand | Foodservice | Asian cuisine | Yield: 12%</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Boneless Skin-On Thighs</div>
+                <div class="spec-detail">Price: $1.25/lb | Daily: +$0.04 (+3.3%) | Weekly: +$0.11 (+9.7%)</div>
+                <div class="spec-detail">Premium home cooking | Grilling | Yield: 13%</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Thigh Meat (Trim/Diced)</div>
+                <div class="spec-detail">Price: $1.58/lb | Daily: +$0.06 (+3.9%) | Weekly: +$0.16 (+11.3%)</div>
+                <div class="spec-detail">Further processing | Sausage/Ground | Export to Mexico</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Drumstick Specifications</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Drumsticks - Standard</div>
+                <div class="spec-detail">Price: $0.62/lb | Daily: +$0.02 (+3.3%) | Weekly: +$0.05 (+8.8%)</div>
+                <div class="spec-detail">Value retail cut | Kids favorite | Yield: 16%</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Drumsticks - Jumbo</div>
+                <div class="spec-detail">Price: $0.72/lb | Daily: +$0.02 (+2.9%) | Weekly: +$0.06 (+9.1%)</div>
+                <div class="spec-detail">Premium size | Better presentation | Yield: 17%</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Drumsticks - Small</div>
+                <div class="spec-detail">Price: $0.52/lb | Daily: +$0.01 (+2.0%) | Weekly: +$0.04 (+8.3%)</div>
+                <div class="spec-detail">Economy segment | Further processing | Yield: 15%</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Leg Quarters (Combined)</div>
+                <span class="badge badge-live">EXPORT FOCUS</span>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Leg Quarters - Domestic</div>
+                <div class="spec-detail">Price: $0.52/lb | Daily: +$0.02 (+4.0%) | Weekly: +$0.04 (+8.3%)</div>
+                <div class="spec-detail">Value market | BBQ/Grilling | Yield: 32%</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Leg Quarters - Export (Russia/CIS)</div>
+                <div class="spec-detail">Price: $0.48/lb | Daily: +$0.01 (+2.1%) | Weekly: +$0.03 (+6.7%)</div>
+                <div class="spec-detail">Major volume | Container loads | Frozen</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Leg Quarters - Export (Africa)</div>
+                <div class="spec-detail">Price: $0.46/lb | Daily: +$0.01 (+2.2%) | Weekly: +$0.03 (+7.0%)</div>
+                <div class="spec-detail">Growing market | Nigeria, Ghana, Angola key destinations</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Leg Quarters - Export (Caribbean/Mexico)</div>
+                <div class="spec-detail">Price: $0.50/lb | Daily: +$0.02 (+4.2%) | Weekly: +$0.04 (+8.7%)</div>
+                <div class="spec-detail">Regional trade | Shorter logistics | Fresh/frozen mix</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 6: FURTHER PROCESSED & SPECIALTY -->
+    <h2 class="section-header">⚙️ SECTION 6: FURTHER PROCESSED & SPECIALTY PRODUCTS</h2>
+
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Mechanically Separated Chicken (MSC)</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">MSC - Standard Grade</div>
+                <div class="spec-detail">Price: $0.42/lb | Daily: +$0.01 (+2.4%) | Weekly: +$0.03 (+7.7%)</div>
+                <div class="spec-detail">Hot dog production | Processed meats | High volume</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">MSC - Premium Grade</div>
+                <div class="spec-detail">Price: $0.58/lb | Daily: +$0.02 (+3.6%) | Weekly: +$0.04 (+7.4%)</div>
+                <div class="spec-detail">Better color/texture | Premium processed products</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Ground Chicken</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Ground Chicken - 93/7 (Lean)</div>
+                <div class="spec-detail">Price: $1.85/lb | Daily: +$0.06 (+3.4%) | Weekly: +$0.16 (+9.5%)</div>
+                <div class="spec-detail">Health-conscious consumers | Retail growth</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Ground Chicken - 85/15 (Regular)</div>
+                <div class="spec-detail">Price: $1.52/lb | Daily: +$0.04 (+2.7%) | Weekly: +$0.12 (+8.6%)</div>
+                <div class="spec-detail">Foodservice standard | Better flavor profile</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">RTC (Ready-To-Cook) Products</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Breaded Breast Fillets</div>
+                <div class="spec-detail">Price: $3.45/lb | Daily: +$0.08 (+2.4%) | Weekly: +$0.22 (+6.8%)</div>
+                <div class="spec-detail">Retail frozen | Convenience | School lunch programs</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Breaded Nuggets/Strips</div>
+                <div class="spec-detail">Price: $3.15/lb | Daily: +$0.07 (+2.3%) | Weekly: +$0.19 (+6.4%)</div>
+                <div class="spec-detail">Kids meal standard | QSR volume | Retail frozen</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Marinated IQF Products</div>
+                <div class="spec-detail">Price: $2.85/lb | Daily: +$0.06 (+2.2%) | Weekly: +$0.15 (+5.6%)</div>
+                <div class="spec-detail">Growing segment | Meal solutions | Variety of flavors</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 7: INTEGRATOR ECONOMICS -->
+    <h2 class="section-header">💰 SECTION 7: INTEGRATOR ECONOMICS & MARGIN ANALYSIS</h2>
+
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Live Production Costs (per lb)</div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Cost Component</th>
+                        <th>¢/lb</th>
+                        <th>% of Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Feed Costs</td>
+                        <td>42.5¢</td>
+                        <td>58%</td>
+                    </tr>
+                    <tr>
+                        <td>Chick Costs</td>
+                        <td>6.8¢</td>
+                        <td>9%</td>
+                    </tr>
+                    <tr>
+                        <td>Grower Pay/Labor</td>
+                        <td>8.2¢</td>
+                        <td>11%</td>
+                    </tr>
+                    <tr>
+                        <td>Processing/Labor</td>
+                        <td>9.5¢</td>
+                        <td>13%</td>
+                    </tr>
+                    <tr>
+                        <td>Transportation</td>
+                        <td>3.8¢</td>
+                        <td>5%</td>
+                    </tr>
+                    <tr>
+                        <td>Other (utilities, vet, etc)</td>
+                        <td>2.4¢</td>
+                        <td>3%</td>
+                    </tr>
+                    <tr style="background: rgba(77, 166, 255, 0.1); font-weight: 600;">
+                        <td><strong>TOTAL COST</strong></td>
+                        <td><strong>73.2¢</strong></td>
+                        <td><strong>100%</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Integrator Margin Analysis</div>
+                <span class="badge badge-live">EXPANDING</span>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">Current Gross Margin (per lb)</div>
+                <div class="metric-value price-up">9.3¢</div>
+                <div class="metric-change">WOG 82.5¢ - Cost 73.2¢ = 9.3¢ margin (11.3% margin rate)</div>
+            </div>
+            <table style="margin-top: 16px;">
+                <thead>
+                    <tr>
+                        <th>Period</th>
+                        <th>Margin</th>
+                        <th>Trend</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>This Week</td>
+                        <td class="price-up">9.3¢</td>
+                        <td>▲</td>
+                    </tr>
+                    <tr>
+                        <td>Last Week</td>
+                        <td>7.8¢</td>
+                        <td>▲</td>
+                    </tr>
+                    <tr>
+                        <td>4-Week Avg</td>
+                        <td>6.2¢</td>
+                        <td>—</td>
+                    </tr>
+                    <tr>
+                        <td>52-Week Avg</td>
+                        <td>8.1¢</td>
+                        <td>—</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Feed Cost Index</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">Broiler Feed Cost (¢/lb gain)</div>
+                <div class="metric-value price-down">42.5¢</div>
+                <div class="metric-change price-down">-2.8¢ vs Last Month (-6.2%) | Favorable corn/SBM prices</div>
+            </div>
+            <table style="margin-top: 16px;">
+                <thead>
+                    <tr>
+                        <th>Ingredient</th>
+                        <th>Price</th>
+                        <th>Δ Month</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Corn ($/bu)</td>
+                        <td>$4.25</td>
+                        <td class="price-down">-$0.18</td>
+                    </tr>
+                    <tr>
+                        <td>Soybean Meal ($/ton)</td>
+                        <td>$325</td>
+                        <td class="price-down">-$12</td>
+                    </tr>
+                    <tr>
+                        <td>DDGS ($/ton)</td>
+                        <td>$185</td>
+                        <td class="price-down">-$5</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Production Efficiency Metrics</div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Current</th>
+                        <th>Industry Avg</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Feed Conversion Ratio (FCR)</td>
+                        <td>1.72</td>
+                        <td>1.78</td>
+                    </tr>
+                    <tr>
+                        <td>Avg Days to Market</td>
+                        <td>42 days</td>
+                        <td>45 days</td>
+                    </tr>
+                    <tr>
+                        <td>Avg Live Weight</td>
+                        <td>6.48 lbs</td>
+                        <td>6.35 lbs</td>
+                    </tr>
+                    <tr>
+                        <td>Livability %</td>
+                        <td>96.8%</td>
+                        <td>95.2%</td>
+                    </tr>
+                    <tr>
+                        <td>Breast Yield %</td>
+                        <td>28.5%</td>
+                        <td>27.2%</td>
+                    </tr>
+                    <tr>
+                        <td>Total Meat Yield %</td>
+                        <td>74.2%</td>
+                        <td>73.5%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Top 5 Integrators - Market Share</div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Company</th>
+                        <th>Market Share</th>
+                        <th>Weekly Prod (M lbs)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Tyson Foods</strong></td>
+                        <td>21.2%</td>
+                        <td>231M</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Pilgrim's Pride</strong></td>
+                        <td>16.8%</td>
+                        <td>183M</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Sanderson Farms/Wayne Farms</strong></td>
+                        <td>11.5%</td>
+                        <td>125M</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Perdue Farms</strong></td>
+                        <td>9.8%</td>
+                        <td>107M</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Koch Foods</strong></td>
+                        <td>6.2%</td>
+                        <td>68M</td>
+                    </tr>
+                    <tr style="background: rgba(77, 166, 255, 0.1);">
+                        <td><strong>Top 5 Total</strong></td>
+                        <td><strong>65.5%</strong></td>
+                        <td><strong>714M</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Product Mix Revenue Impact</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">High-Value Products (35% of volume)</div>
+                <div class="spec-detail">B/S Breast, Tenders, Jumbo Wings → 52% of revenue</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Mid-Value Products (40% of volume)</div>
+                <div class="spec-detail">Bone-in cuts, Medium wings, Thighs → 32% of revenue</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Low-Value Products (25% of volume)</div>
+                <div class="spec-detail">Leg quarters, Backs, Trim, MSC → 16% of revenue</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Strategic Focus</div>
+                <div class="spec-detail">⚡ Maximize breast yield & white meat production | Export dark meat efficiently | Value-added growth</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="card full-width">
+        <div class="card-header">
+            <div class="card-title">Boneless Breast Price Trends (Last 12 Months)</div>
+        </div>
+        <div class="chart-container">
+            <canvas id="breastTrendChart"></canvas>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Wing Market Seasonality (24 Months)</div>
+            </div>
+            <div class="chart-container">
+                <canvas id="wingSeasonalChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Integrator Margin Trends</div>
+            </div>
+            <div class="chart-container">
+                <canvas id="marginTrendChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// Chart.js Configuration
+Chart.defaults.color = '#a0a5b8';
+Chart.defaults.borderColor = '#2d3548';
+Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+
+// WOG Market Share Pie Chart
+const wogShareCtx = document.getElementById('wogShareChart').getContext('2d');
+new Chart(wogShareCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Medium (2.75-3.5 lbs)', 'Large (4-5 lbs)', 'Roaster (5.5-7 lbs)', 'Small (2-2.5 lbs)', 'Jumbo (8-10 lbs)', 'Cornish (1-1.5 lbs)'],
+        datasets: [{
+            data: [45, 28, 12, 8, 5, 2],
+            backgroundColor: [
+                '#4da6ff',
+                '#00ff88',
+                '#ffd700',
+                '#ff8c42',
+                '#ff4444',
+                '#a0a5b8'
+            ],
+            borderWidth: 2,
+            borderColor: '#0a0e1a'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    padding: 10,
+                    font: { size: 10 },
+                    usePointStyle: true
+                }
+            }
+        }
+    }
+});
+
+// Breast Trend Chart
+const breastCtx = document.getElementById('breastTrendChart').getContext('2d');
+new Chart(breastCtx, {
+    type: 'line',
+    data: {
+        labels: ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'],
+        datasets: [{
+            label: 'B/S Breast ($/lb)',
+            data: [0.98, 1.02, 1.08, 1.15, 1.22, 1.18, 1.12, 1.08, 1.05, 1.12, 1.17, 1.62],
+            borderColor: '#4da6ff',
+            backgroundColor: 'rgba(77, 166, 255, 0.2)',
+            fill: true,
+            tension: 0.4,
+            pointRadius: 4,
+            pointHoverRadius: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: {
+                beginAtZero: false,
+                grid: { color: '#2d3548' },
+                ticks: {
+                    callback: function(value) {
+                        return '$' + value.toFixed(2);
+                    }
+                }
+            },
+            x: {
+                grid: { display: false }
+            }
+        }
+    }
+});
+
+// Wing Seasonal Chart
+const wingCtx = document.getElementById('wingSeasonalChart').getContext('2d');
+new Chart(wingCtx, {
+    type: 'line',
+    data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'],
+        datasets: [
+            {
+                label: '2025',
+                data: [2.15, 2.95, 1.82, 1.68, 1.72, 1.78, 1.85, 1.88, 1.92, 2.05, 2.28, 2.42, null, null, null],
+                borderColor: '#6b7280',
+                borderDash: [5, 5],
+                tension: 0.4,
+                pointRadius: 0
+            },
+            {
+                label: '2026',
+                data: [null, null, null, null, null, null, null, null, null, null, null, null, 2.42, 2.73, 2.15],
+                borderColor: '#ff8c42',
+                tension: 0.4,
+                pointRadius: 5,
+                pointHoverRadius: 7
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top',
+                labels: { padding: 10 }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: false,
+                grid: { color: '#2d3548' },
+                ticks: {
+                    callback: function(value) {
+                        return '$' + value.toFixed(2);
+                    }
+                }
+            },
+            x: {
+                grid: { display: false }
+            }
+        }
+    }
+});
+
+// Margin Trend Chart
+const marginCtx = document.getElementById('marginTrendChart').getContext('2d');
+new Chart(marginCtx, {
+    type: 'bar',
+    data: {
+        labels: ['Q1 25', 'Q2 25', 'Q3 25', 'Q4 25', 'Q1 26'],
+        datasets: [{
+            label: 'Margin (¢/lb)',
+            data: [5.2, 7.8, 10.2, 6.8, 9.3],
+            backgroundColor: function(context) {
+                const value = context.parsed.y;
+                return value >= 8 ? '#00ff88' : value >= 5 ? '#ffd700' : '#ff4444';
+            },
+            borderColor: '#0a0e1a',
+            borderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: { color: '#2d3548' },
+                ticks: {
+                    callback: function(value) {
+                        return value.toFixed(1) + '¢';
+                    }
+                }
+            },
+            x: {
+                grid: { display: false }
+            }
+        }
+    }
+});
+</script>
+
+</body>
+</html>
