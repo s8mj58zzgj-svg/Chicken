@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Institutional Pork Intelligence Platform | C-Suite Commodity Analytics</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+    --bg-primary: #0a0e1a;
+    --bg-secondary: #141824;
+    --bg-tertiary: #1e2433;
+    --bg-card: #252d3f;
+    --border-color: #2d3548;
+    --text-primary: #e8eaed;
+    --text-secondary: #a0a5b8;
+    --text-muted: #6b7280;
+    --accent-red: #ff4444;
+    --accent-green: #00ff88;
+    --accent-blue: #4da6ff;
+    --accent-yellow: #ffd700;
+    --accent-orange: #ff8c42;
+}
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    font-size: 13px;
+}
+header {
+    background: linear-gradient(135deg, #1a1f2e 0%, #0f1419 100%);
+    padding: 24px 40px;
+    border-bottom: 2px solid var(--accent-blue);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent-blue);
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+}
+.subtitle {
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 400;
+}
+.container {
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: 30px;
+}
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 24px;
+    margin-bottom: 30px;
+}
+.card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+.card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.badge-live {
+    background: rgba(0, 255, 136, 0.2);
+    color: var(--accent-green);
+}
+.badge-alert {
+    background: rgba(255, 68, 68, 0.2);
+    color: var(--accent-red);
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+}
+th {
+    text-align: left;
+    padding: 12px 8px;
+    background: var(--bg-tertiary);
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+td {
+    padding: 12px 8px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 13px;
+}
+.price-up {
+    color: var(--accent-green);
+}
+.price-down {
+    color: var(--accent-red);
+}
+.metric-box {
+    background: var(--bg-tertiary);
+    padding: 16px;
+    border-radius: 8px;
+    margin: 8px 0;
+}
+.metric-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+.metric-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+.metric-change {
+    font-size: 12px;
+    margin-top: 4px;
+}
+.section-header {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent-yellow);
+    margin: 40px 0 20px 0;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--accent-yellow);
+}
+.subsection-header {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--accent-blue);
+    margin: 24px 0 12px 0;
+}
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin-top: 20px;
+}
+.full-width {
+    grid-column: 1 / -1;
+}
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+.spec-item {
+    background: var(--bg-tertiary);
+    padding: 12px;
+    border-radius: 6px;
+    margin: 6px 0;
+    border-left: 3px solid var(--accent-blue);
+}
+.spec-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+.spec-detail {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+.alert-banner {
+    background: linear-gradient(135deg, rgba(255, 68, 68, 0.2) 0%, rgba(255, 68, 68, 0.1) 100%);
+    border: 1px solid var(--accent-red);
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.alert-icon {
+    font-size: 24px;
+}
+</style>
+</head>
+<body>
+
+<header>
+    <h1>🐷 INSTITUTIONAL PORK INTELLIGENCE PLATFORM</h1>
+    <div class="subtitle">C-Suite Commodity Analytics • Real-Time Market Intelligence • March 15, 2026</div>
+</header>
+
+<div class="container">
+    
+    <!-- EXECUTIVE SUMMARY -->
+    <div class="alert-banner">
+        <div class="alert-icon">⚡</div>
+        <div>
+            <strong>MARKET ALERT:</strong> Pork cutout up +$3.25 to $92.47/cwt (+3.6%) on strong belly demand. Q2 lean hog futures showing backwardation amid tight supply.
+        </div>
+    </div>
+
+    <!-- KEY METRICS DASHBOARD -->
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Pork Cutout Value</div>
+                <span class="badge badge-live">LIVE</span>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">National Composite Cutout ($/cwt)</div>
+                <div class="metric-value">$92.47</div>
+                <div class="metric-change price-up">+$3.25 (+3.6%) Today | +$8.12 (+9.6%) Week</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Live Hog Index</div>
+                <span class="badge badge-live">LIVE</span>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">National Base ($/cwt)</div>
+                <div class="metric-value">$78.23</div>
+                <div class="metric-change price-up">+$1.45 (+1.9%) Today | +$4.33 (+5.9%) Week</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">CME Lean Hogs (Nearby)</div>
+                <span class="badge badge-live">LIVE</span>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">Apr '26 Settlement (¢/lb)</div>
+                <div class="metric-value">81.425¢</div>
+                <div class="metric-change price-up">+2.15¢ (+2.7%) | Vol: 34,582 | OI: 52,441</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 1: TRIM PRICING GRID -->
+    <h2 class="section-header">📊 SECTION 1: LEAN PORK TRIM PRICING GRID</h2>
+    
+    <div class="card full-width">
+        <div class="card-header">
+            <div class="card-title">National Trim Prices by Lean Point ($/lb)</div>
+            <span class="badge badge-live">LIVE QUOTES</span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Lean Point</th>
+                    <th>Current Price</th>
+                    <th>Daily Δ</th>
+                    <th>Weekly Δ</th>
+                    <th>Monthly Δ</th>
+                    <th>YoY</th>
+                    <th>52-Week Range</th>
+                    <th>Spread to 50CL</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>96 CL (Super Lean)</strong></td>
+                    <td>$1.68</td>
+                    <td class="price-up">+$0.04 (+2.4%)</td>
+                    <td class="price-up">+$0.11 (+7.0%)</td>
+                    <td class="price-up">+$0.18 (+12.0%)</td>
+                    <td class="price-down">-$0.23 (-12.0%)</td>
+                    <td>$1.42 - $1.91</td>
+                    <td>+$0.78</td>
+                </tr>
+                <tr>
+                    <td><strong>90 CL (Premium)</strong></td>
+                    <td>$1.52</td>
+                    <td class="price-up">+$0.03 (+2.0%)</td>
+                    <td class="price-up">+$0.09 (+6.3%)</td>
+                    <td class="price-up">+$0.15 (+10.9%)</td>
+                    <td class="price-down">-$0.19 (-11.1%)</td>
+                    <td>$1.28 - $1.74</td>
+                    <td>+$0.62</td>
+                </tr>
+                <tr>
+                    <td><strong>80 CL (Standard)</strong></td>
+                    <td>$1.28</td>
+                    <td class="price-up">+$0.02 (+1.6%)</td>
+                    <td class="price-up">+$0.07 (+5.8%)</td>
+                    <td class="price-up">+$0.12 (+10.3%)</td>
+                    <td class="price-down">-$0.14 (-9.9%)</td>
+                    <td>$1.08 - $1.48</td>
+                    <td>+$0.38</td>
+                </tr>
+                <tr>
+                    <td><strong>72 CL (Regular)</strong></td>
+                    <td>$1.09</td>
+                    <td class="price-up">+$0.02 (+1.9%)</td>
+                    <td class="price-up">+$0.06 (+5.8%)</td>
+                    <td class="price-up">+$0.10 (+10.1%)</td>
+                    <td class="price-down">-$0.11 (-9.2%)</td>
+                    <td>$0.92 - $1.26</td>
+                    <td>+$0.19</td>
+                </tr>
+                <tr style="background: rgba(77, 166, 255, 0.1);">
+                    <td><strong>50 CL (Commodity)</strong></td>
+                    <td>$0.90</td>
+                    <td class="price-up">+$0.02 (+2.3%)</td>
+                    <td class="price-up">+$0.05 (+5.9%)</td>
+                    <td class="price-up">+$0.08 (+9.8%)</td>
+                    <td class="price-down">-$0.08 (-8.2%)</td>
+                    <td>$0.76 - $1.04</td>
+                    <td>BENCHMARK</td>
+                </tr>
+                <tr>
+                    <td><strong>42 CL (Fat Trim)</strong></td>
+                    <td>$0.74</td>
+                    <td class="price-up">+$0.01 (+1.4%)</td>
+                    <td class="price-up">+$0.04 (+5.7%)</td>
+                    <td class="price-up">+$0.07 (+10.4%)</td>
+                    <td class="price-down">-$0.06 (-7.5%)</td>
+                    <td>$0.63 - $0.86</td>
+                    <td>-$0.16</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Regional Trim Basis (vs National)</div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Region</th>
+                        <th>90CL Basis</th>
+                        <th>72CL Basis</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>IA/S.MN</td>
+                        <td class="price-up">+$0.02</td>
+                        <td class="price-up">+$0.03</td>
+                    </tr>
+                    <tr>
+                        <td>W.Corn Belt</td>
+                        <td>$0.00</td>
+                        <td class="price-up">+$0.01</td>
+                    </tr>
+                    <tr>
+                        <td>E.Corn Belt</td>
+                        <td class="price-down">-$0.01</td>
+                        <td>$0.00</td>
+                    </tr>
+                    <tr>
+                        <td>Southeast</td>
+                        <td class="price-down">-$0.03</td>
+                        <td class="price-down">-$0.02</td>
+                    </tr>
+                    <tr>
+                        <td>TX/OK</td>
+                        <td class="price-down">-$0.04</td>
+                        <td class="price-down">-$0.03</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Trim Spread Analysis</div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Spread</th>
+                        <th>Current</th>
+                        <th>5-Yr Avg</th>
+                        <th>Deviation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>96CL - 72CL</td>
+                        <td>$0.59</td>
+                        <td>$0.52</td>
+                        <td class="price-up">+13.5%</td>
+                    </tr>
+                    <tr>
+                        <td>90CL - 72CL</td>
+                        <td>$0.43</td>
+                        <td>$0.38</td>
+                        <td class="price-up">+13.2%</td>
+                    </tr>
+                    <tr>
+                        <td>80CL - 72CL</td>
+                        <td>$0.19</td>
+                        <td>$0.17</td>
+                        <td class="price-up">+11.8%</td>
+                    </tr>
+                    <tr>
+                        <td>72CL - 50CL</td>
+                        <td>$0.19</td>
+                        <td>$0.21</td>
+                        <td class="price-down">-9.5%</td>
+                    </tr>
+                    <tr>
+                        <td>50CL - 42CL</td>
+                        <td>$0.16</td>
+                        <td>$0.14</td>
+                        <td class="price-up">+14.3%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card full-width">
+        <div class="card-header">
+            <div class="card-title">Interactive Trim Price Trends (180 Days)</div>
+        </div>
+        <div class="chart-container">
+            <canvas id="trimTrendsChart"></canvas>
+        </div>
+    </div>
+
+    <!-- SECTION 2: PRIMAL BREAKDOWN -->
+    <h2 class="section-header">🥩 SECTION 2: COMPREHENSIVE PRIMAL BREAKDOWN</h2>
+
+    <h3 class="subsection-header">LOIN CUTS (8 Specifications)</h3>
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Bone-In Loin</div>
+                <span class="badge badge-live">LIVE</span>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">IMPS/NAMP 410 | Wt: 14-20 lbs</div>
+                <div class="spec-detail">Price: $1.24/lb | Yield: 73% | Daily: +$0.02 (+1.6%)</div>
+                <div class="spec-detail">Monthly Trend: +8.8% | Seasonal Pattern: Q2 Peak | Inventory: Normal</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Boneless Loin</div>
+                <span class="badge badge-live">LIVE</span>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">IMPS/NAMP 413 | Wt: 10-14 lbs</div>
+                <div class="spec-detail">Price: $2.18/lb | Yield: 95% | Daily: +$0.04 (+1.9%)</div>
+                <div class="spec-detail">Monthly Trend: +11.2% | High Demand | Export: Strong to Japan</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Center-Cut Chops (Bone-In)</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">IMPS/NAMP 1410 | Wt: 8-10 oz each</div>
+                <div class="spec-detail">Price: $3.45/lb | Yield: 68% | Daily: +$0.06 (+1.8%)</div>
+                <div class="spec-detail">Retail Premium | Monthly: +9.5% | Strong Easter Demand</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Boneless Chops</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">IMPS/NAMP 1412 | Wt: 6-8 oz each</div>
+                <div class="spec-detail">Price: $3.82/lb | Yield: 92% | Daily: +$0.07 (+1.9%)</div>
+                <div class="spec-detail">Top SKU for Retail | Foodservice Steady | Month: +12.1%</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Canadian Back (Loin Eye)</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">IMPS/NAMP 414 | Wt: 3-5 lbs</div>
+                <div class="spec-detail">Price: $4.25/lb | Yield: 98% | Daily: +$0.08 (+1.9%)</div>
+                <div class="spec-detail">Premium Product | Export to Canada/UK | Month: +14.3%</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Tenderloin</div>
+                <span class="badge badge-alert">HIGH VALUE</span>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">IMPS/NAMP 415 | Wt: 0.75-1.25 lbs</div>
+                <div class="spec-detail">Price: $8.95/lb | Yield: 99% | Daily: +$0.15 (+1.7%)</div>
+                <div class="spec-detail">Top Premium Cut | Strong Demand | Month: +18.2% | Export: Japan</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Sirloin (Bone-In)</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">IMPS/NAMP 416 | Wt: 4-7 lbs</div>
+                <div class="spec-detail">Price: $1.98/lb | Yield: 71% | Daily: +$0.03 (+1.5%)</div>
+                <div class="spec-detail">Value Cut | Foodservice Strong | Month: +7.8%</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Country-Style Ribs</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">IMPS/NAMP 423 | Wt: 0.5-1 lb each</div>
+                <div class="spec-detail">Price: $2.45/lb | Yield: 85% | Daily: +$0.04 (+1.7%)</div>
+                <div class="spec-detail">BBQ Season Approaching | Retail Demand Up | Month: +10.2%</div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="subsection-header">BUTT CUTS (4 Specifications)</h3>
+    <div class="grid-2">
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Boston Butt (Bone-In) - IMPS 406 | 6-10 lbs</div>
+                <div class="spec-detail">Price: $1.15/lb | Daily: +$0.03 (+2.7%) | Month: +9.8%</div>
+                <div class="spec-detail">Pulled Pork Demand Strong | Foodservice Key SKU</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Boston Butt (Boneless) - IMPS 406A | 5-8 lbs</div>
+                <div class="spec-detail">Price: $1.68/lb | Daily: +$0.04 (+2.4%) | Month: +11.5%</div>
+                <div class="spec-detail">Export Premium to Korea | Processing Preferred</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Collar Butt - IMPS 407 | 2-4 lbs</div>
+                <div class="spec-detail">Price: $1.42/lb | Daily: +$0.02 (+1.4%) | Month: +8.2%</div>
+                <div class="spec-detail">Asian Export Cut | Limited Domestic Demand</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Blade Steaks - IMPS 1406 | 6-8 oz each</div>
+                <div class="spec-detail">Price: $2.25/lb | Daily: +$0.05 (+2.3%) | Month: +12.1%</div>
+                <div class="spec-detail">Value Retail Cut | Grilling Season Ramp</div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="subsection-header">PICNIC CUTS (5 Specifications)</h3>
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Picnic (Bone-In) - IMPS 405 | 5-8 lbs</div>
+                <div class="spec-detail">Price: $0.92/lb | Daily: +$0.02 (+2.2%) | Month: +8.5%</div>
+                <div class="spec-detail">Economy Cut | Steady Demand | Mexican Market Strong</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Picnic (Boneless) - IMPS 405A | 4-6 lbs</div>
+                <div class="spec-detail">Price: $1.28/lb | Daily: +$0.03 (+2.4%) | Month: +10.2%</div>
+                <div class="spec-detail">Processing Preferred | Good Yield | Export to Mexico</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Cushion Meat - IMPS 405B | 2-3 lbs</div>
+                <div class="spec-detail">Price: $1.52/lb | Daily: +$0.02 (+1.3%) | Month: +7.8%</div>
+                <div class="spec-detail">Deli Ham Production | Stable Demand</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Picnic Collar - IMPS 405C | 1.5-2.5 lbs</div>
+                <div class="spec-detail">Price: $1.18/lb | Daily: +$0.01 (+0.9%) | Month: +5.2%</div>
+                <div class="spec-detail">Asian Markets | Limited Domestic Use</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Hocks - IMPS 417 | 0.75-1.25 lbs</div>
+                <div class="spec-detail">Price: $0.68/lb | Daily: +$0.01 (+1.5%) | Month: +6.8%</div>
+                <div class="spec-detail">Ethnic Markets | Export to China/Germany</div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="subsection-header">HAM CUTS (12 Specifications)</h3>
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Whole Ham (Bone-In) - IMPS 401 | 18-26 lbs</div>
+                <div class="spec-detail">Price: $0.98/lb | Daily: +$0.02 (+2.1%) | Month: +8.2%</div>
+                <div class="spec-detail">Easter Demand Building | Retail Feature Cut</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Whole Ham (Boneless) - IMPS 402 | 14-20 lbs</div>
+                <div class="spec-detail">Price: $1.45/lb | Daily: +$0.03 (+2.1%) | Month: +9.5%</div>
+                <div class="spec-detail">Export Premium | Processing Preferred | Strong</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Inside (Top) Round - IMPS 402C | 9-13 lbs</div>
+                <div class="spec-detail">Price: $1.82/lb | Daily: +$0.04 (+2.2%) | Month: +11.2%</div>
+                <div class="spec-detail">Premium Ham Cut | Deli/Foodservice | Top Seller</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Outside (Bottom) Round - IMPS 402D | 7-11 lbs</div>
+                <div class="spec-detail">Price: $1.68/lb | Daily: +$0.03 (+1.8%) | Month: +9.8%</div>
+                <div class="spec-detail">Good Value | Processing Volume Cut</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Knuckle (Tip) - IMPS 402E | 3-5 lbs</div>
+                <div class="spec-detail">Price: $1.55/lb | Daily: +$0.02 (+1.3%) | Month: +7.5%</div>
+                <div class="spec-detail">Versatile Cut | Deli Ham Component</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Shank Portion - IMPS 401B | 9-12 lbs</div>
+                <div class="spec-detail">Price: $0.88/lb | Daily: +$0.02 (+2.3%) | Month: +9.1%</div>
+                <div class="spec-detail">Holiday Favorite | Retail Strong | Easter Peak</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Center Slices - IMPS 1401 | 6-10 oz each</div>
+                <div class="spec-detail">Price: $3.25/lb | Daily: +$0.06 (+1.9%) | Month: +12.8%</div>
+                <div class="spec-detail">Retail Premium SKU | High Margin | Strong Demand</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Diced Ham (1" cubes) - IMPS 1402 | 5 lb bags</div>
+                <div class="spec-detail">Price: $2.45/lb | Daily: +$0.04 (+1.7%) | Month: +8.9%</div>
+                <div class="spec-detail">Foodservice Standard | Pizza/Salad Topping</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Pulled Ham - IMPS 1402A | 10 lb bags</div>
+                <div class="spec-detail">Price: $2.68/lb | Daily: +$0.05 (+1.9%) | Month: +10.5%</div>
+                <div class="spec-detail">Deli/Sandwich Shops | Growing Segment</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Trimmed Ham 95% Lean - IMPS 402A | 12-16 lbs</div>
+                <div class="spec-detail">Price: $2.15/lb | Daily: +$0.05 (+2.4%) | Month: +13.2%</div>
+                <div class="spec-detail">Premium Product | Export/Domestic | High Value</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Export Ham Cuts (China Spec)</div>
+                <div class="spec-detail">Price: $1.95/lb | Daily: +$0.04 (+2.1%) | Month: +11.8%</div>
+                <div class="spec-detail">Ractopamine-Free Premium | Strong China Demand</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Domestic Ham (Variety Pack)</div>
+                <div class="spec-detail">Price: $1.52/lb | Daily: +$0.03 (+2.0%) | Month: +9.2%</div>
+                <div class="spec-detail">Mixed Specifications | Retail Bulk</div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="subsection-header">BELLY CUTS (8 Specifications)</h3>
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Pork Belly (Skin-On)</div>
+                <span class="badge badge-alert">🔥 HOT</span>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">IMPS 408 | 12-16 lbs</div>
+                <div class="spec-detail">Price: $2.85/lb | Daily: +$0.12 (+4.4%) | Month: +22.3%</div>
+                <div class="spec-detail">⚡ STRONG BACON DEMAND | Cold Storage Down 18% YoY</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Pork Belly (Skinless)</div>
+                <span class="badge badge-alert">🔥 HOT</span>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">IMPS 408A | 10-14 lbs</div>
+                <div class="spec-detail">Price: $3.12/lb | Daily: +$0.14 (+4.7%) | Month: +24.8%</div>
+                <div class="spec-detail">⚡ HIGHEST GAIN TODAY | Bacon Processing Peak | Export Strong</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Squared Belly (13-17 lbs) - IMPS 409</div>
+                <div class="spec-detail">Price: $3.28/lb | Daily: +$0.15 (+4.8%) | Month: +26.2%</div>
+                <div class="spec-detail">Premium Bacon | Uniform Slices | Top Processing Choice</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Belly Strips (Pre-Sliced)</div>
+                <div class="spec-detail">Price: $4.25/lb | Daily: +$0.18 (+4.4%) | Month: +28.5%</div>
+                <div class="spec-detail">Retail Ready | Foodservice Premium | Strong Growth</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Belly Ends & Pieces</div>
+                <div class="spec-detail">Price: $1.85/lb | Daily: +$0.06 (+3.4%) | Month: +18.2%</div>
+                <div class="spec-detail">Further Processing | Ground/Sausage | Value Product</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Cured Belly (Bacon)</div>
+                <div class="spec-detail">Price: $4.95/lb | Daily: +$0.22 (+4.7%) | Month: +32.1%</div>
+                <div class="spec-detail">Finished Product | Restaurant/Retail | Peak Demand</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Fresh Belly Cuts (Asian Market)</div>
+                <div class="spec-detail">Price: $2.95/lb | Daily: +$0.11 (+3.9%) | Month: +20.5%</div>
+                <div class="spec-detail">Export to Korea/Japan | Samgyeopsal Demand</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Export Belly (China Premium)</div>
+                <div class="spec-detail">Price: $3.45/lb | Daily: +$0.16 (+4.9%) | Month: +27.8%</div>
+                <div class="spec-detail">Ractopamine-Free | Strong China Import Demand</div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="subsection-header">RIB CUTS (4 Specifications)</h3>
+    <div class="grid-2">
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Spare Ribs - IMPS 416 | 2.5-3.5 lbs</div>
+                <div class="spec-detail">Price: $2.15/lb | Daily: +$0.05 (+2.4%) | Month: +11.8%</div>
+                <div class="spec-detail">BBQ Season Ramp | Retail/Foodservice | Growing Demand</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Baby Back Ribs - IMPS 422 | 1.5-2 lbs</div>
+                <div class="spec-detail">Price: $4.45/lb | Daily: +$0.10 (+2.3%) | Month: +14.5%</div>
+                <div class="spec-detail">Premium Cut | Restaurant Favorite | Strong Demand</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">St. Louis Style Ribs - IMPS 424 | 2-2.75 lbs</div>
+                <div class="spec-detail">Price: $3.25/lb | Daily: +$0.07 (+2.2%) | Month: +13.2%</div>
+                <div class="spec-detail">Competition BBQ Standard | Retail Growth | Q2 Peak</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="spec-item">
+                <div class="spec-name">Rib Tips - IMPS 416A | 0.5-1 lb</div>
+                <div class="spec-detail">Price: $1.45/lb | Daily: +$0.03 (+2.1%) | Month: +9.5%</div>
+                <div class="spec-detail">Value Product | BBQ Trim | Ethnic Markets</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 3: USDA REPORTS DASHBOARD -->
+    <h2 class="section-header">📋 SECTION 3: USDA LIVESTOCK MANDATORY REPORTING</h2>
+
+    <div class="card full-width">
+        <div class="card-header">
+            <div class="card-title">LM_PK600: National Daily Direct Hog Prior Day Report</div>
+            <span class="badge badge-live">UPDATED 9:00 AM CST</span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th>Today</th>
+                    <th>Yesterday</th>
+                    <th>Week Ago</th>
+                    <th>Δ vs Yesterday</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Negotiated Price ($/cwt)</strong></td>
+                    <td>$78.45</td>
+                    <td>$77.12</td>
+                    <td>$74.22</td>
+                    <td class="price-up">+$1.33 (+1.7%)</td>
+                    <td>Strong demand, tight supply</td>
+                </tr>
+                <tr>
+                    <td><strong>Head Count (Negotiated)</strong></td>
+                    <td>5,842</td>
+                    <td>6,215</td>
+                    <td>7,118</td>
+                    <td class="price-down">-373 (-6.0%)</td>
+                    <td>Below avg volume</td>
+                </tr>
+                <tr>
+                    <td><strong>Swine/Pork Market Formula</strong></td>
+                    <td>$78.92</td>
+                    <td>$77.58</td>
+                    <td>$74.88</td>
+                    <td class="price-up">+$1.34 (+1.7%)</td>
+                    <td>Following cash strength</td>
+                </tr>
+                <tr>
+                    <td><strong>Formula Head Count</strong></td>
+                    <td>142,558</td>
+                    <td>138,922</td>
+                    <td>145,331</td>
+                    <td class="price-up">+3,636 (+2.6%)</td>
+                    <td>Normal volume</td>
+                </tr>
+                <tr>
+                    <td><strong>Negotiated Carcass Basis</strong></td>
+                    <td>$80.12</td>
+                    <td>$78.65</td>
+                    <td>$75.48</td>
+                    <td class="price-up">+$1.47 (+1.9%)</td>
+                    <td>Premium to live</td>
+                </tr>
+                <tr>
+                    <td><strong>Avg Live Weight (lbs)</strong></td>
+                    <td>286.4</td>
+                    <td>285.8</td>
+                    <td>284.2</td>
+                    <td class="price-up">+0.6</td>
+                    <td>Weights trending up</td>
+                </tr>
+                <tr>
+                    <td><strong>Avg Carcass Weight (lbs)</strong></td>
+                    <td>214.2</td>
+                    <td>213.8</td>
+                    <td>212.5</td>
+                    <td class="price-up">+0.4</td>
+                    <td>Normal range</td>
+                </tr>
+                <tr>
+                    <td><strong>Dressed Yield %</strong></td>
+                    <td>74.8%</td>
+                    <td>74.8%</td>
+                    <td>74.8%</td>
+                    <td>0.0%</td>
+                    <td>Stable</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">LM_PK602: Afternoon Hog Report</div>
+                <span class="badge badge-live">2:00 PM CST</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Price</th>
+                        <th>Head</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Negotiated</td>
+                        <td>$78.62</td>
+                        <td>2,145</td>
+                    </tr>
+                    <tr>
+                        <td>Formula</td>
+                        <td>$79.05</td>
+                        <td>68,422</td>
+                    </tr>
+                    <tr>
+                        <td>Combined</td>
+                        <td class="price-up">$78.98</td>
+                        <td>70,567</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">LM_PK603: Actual Slaughter</div>
+                <span class="badge badge-live">3:00 PM CST</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Head Count</th>
+                        <th>vs Week Ago</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Today</td>
+                        <td>478,000</td>
+                        <td class="price-down">-2.1%</td>
+                    </tr>
+                    <tr>
+                        <td>Week Ago</td>
+                        <td>488,000</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>Year Ago</td>
+                        <td>492,000</td>
+                        <td class="price-down">-2.8% YoY</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card full-width">
+        <div class="card-header">
+            <div class="card-title">LM_PK620: Comprehensive National Pork Cutout</div>
+            <span class="badge badge-live">UPDATED 2:30 PM CST</span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Price ($/cwt)</th>
+                    <th>Daily Δ</th>
+                    <th>Weekly Δ</th>
+                    <th>Loads</th>
+                    <th>Weight Trend</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="background: rgba(77, 166, 255, 0.1); font-weight: 600;">
+                    <td><strong>TOTAL CUTOUT VALUE</strong></td>
+                    <td><strong>$92.47</strong></td>
+                    <td class="price-up"><strong>+$3.25 (+3.6%)</strong></td>
+                    <td class="price-up"><strong>+$8.12 (+9.6%)</strong></td>
+                    <td><strong>342.5</strong></td>
+                    <td>▲</td>
+                </tr>
+                <tr>
+                    <td>Belly (Skin-On)</td>
+                    <td>$285.00</td>
+                    <td class="price-up">+$12.50 (+4.6%)</td>
+                    <td class="price-up">+$42.18 (+17.4%)</td>
+                    <td>82.3</td>
+                    <td>▲▲</td>
+                </tr>
+                <tr>
+                    <td>Boneless Loin</td>
+                    <td>$218.00</td>
+                    <td class="price-up">+$4.00 (+1.9%)</td>
+                    <td class="price-up">+$18.22 (+9.1%)</td>
+                    <td>64.8</td>
+                    <td>▲</td>
+                </tr>
+                <tr>
+                    <td>Butt (Boneless)</td>
+                    <td>$168.00</td>
+                    <td class="price-up">+$4.00 (+2.4%)</td>
+                    <td class="price-up">+$15.88 (+10.4%)</td>
+                    <td>45.2</td>
+                    <td>▲</td>
+                </tr>
+                <tr>
+                    <td>Ham (Boneless)</td>
+                    <td>$145.00</td>
+                    <td class="price-up">+$3.00 (+2.1%)</td>
+                    <td class="price-up">+$12.45 (+9.4%)</td>
+                    <td>98.7</td>
+                    <td>▲</td>
+                </tr>
+                <tr>
+                    <td>Picnic (Boneless)</td>
+                    <td>$128.00</td>
+                    <td class="price-up">+$3.00 (+2.4%)</td>
+                    <td class="price-up">+$11.52 (+9.9%)</td>
+                    <td>28.4</td>
+                    <td>▲</td>
+                </tr>
+                <tr>
+                    <td>Spare Ribs</td>
+                    <td>$215.00</td>
+                    <td class="price-up">+$5.00 (+2.4%)</td>
+                    <td class="price-up">+$22.15 (+11.5%)</td>
+                    <td>23.1</td>
+                    <td>▲</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- SECTION 4: CME FUTURES -->
+    <h2 class="section-header">📈 SECTION 4: CME LEAN HOG FUTURES</h2>
+
+    <div class="card full-width">
+        <div class="card-header">
+            <div class="card-title">Lean Hog Futures - All Contract Months (¢/lb)</div>
+            <span class="badge badge-live">LIVE QUOTES</span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Contract</th>
+                    <th>Last</th>
+                    <th>Daily Δ</th>
+                    <th>High</th>
+                    <th>Low</th>
+                    <th>Volume</th>
+                    <th>Open Interest</th>
+                    <th>Cash Basis</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="background: rgba(77, 166, 255, 0.1);">
+                    <td><strong>APR 2026</strong></td>
+                    <td><strong>81.425</strong></td>
+                    <td class="price-up"><strong>+2.150 (+2.7%)</strong></td>
+                    <td>81.800</td>
+                    <td>79.250</td>
+                    <td>34,582</td>
+                    <td>52,441</td>
+                    <td class="price-up">+3.20¢</td>
+                </tr>
+                <tr>
+                    <td>MAY 2026</td>
+                    <td>79.875</td>
+                    <td class="price-up">+1.925 (+2.5%)</td>
+                    <td>80.200</td>
+                    <td>77.950</td>
+                    <td>28,445</td>
+                    <td>68,225</td>
+                    <td class="price-up">+1.65¢</td>
+                </tr>
+                <tr>
+                    <td>JUN 2026</td>
+                    <td>88.250</td>
+                    <td class="price-up">+2.400 (+2.8%)</td>
+                    <td>88.750</td>
+                    <td>85.900</td>
+                    <td>42,188</td>
+                    <td>95,882</td>
+                    <td class="price-up">+10.03¢</td>
+                </tr>
+                <tr>
+                    <td>JUL 2026</td>
+                    <td>91.125</td>
+                    <td class="price-up">+2.575 (+2.9%)</td>
+                    <td>91.600</td>
+                    <td>88.550</td>
+                    <td>38,922</td>
+                    <td>82,114</td>
+                    <td class="price-up">+12.90¢</td>
+                </tr>
+                <tr>
+                    <td>AUG 2026</td>
+                    <td>87.900</td>
+                    <td class="price-up">+2.225 (+2.6%)</td>
+                    <td>88.300</td>
+                    <td>85.675</td>
+                    <td>25,661</td>
+                    <td>54,339</td>
+                    <td class="price-up">+9.68¢</td>
+                </tr>
+                <tr>
+                    <td>OCT 2026</td>
+                    <td>72.550</td>
+                    <td class="price-up">+1.450 (+2.0%)</td>
+                    <td>72.875</td>
+                    <td>71.100</td>
+                    <td>18,774</td>
+                    <td>62,557</td>
+                    <td class="price-down">-5.68¢</td>
+                </tr>
+                <tr>
+                    <td>DEC 2026</td>
+                    <td>68.225</td>
+                    <td class="price-up">+1.175 (+1.8%)</td>
+                    <td>68.500</td>
+                    <td>67.050</td>
+                    <td>22,338</td>
+                    <td>78,991</td>
+                    <td class="price-down">-9.99¢</td>
+                </tr>
+                <tr>
+                    <td>FEB 2027</td>
+                    <td>70.950</td>
+                    <td class="price-up">+1.325 (+1.9%)</td>
+                    <td>71.200</td>
+                    <td>69.625</td>
+                    <td>14,556</td>
+                    <td>45,228</td>
+                    <td class="price-down">-7.27¢</td>
+                </tr>
+                <tr>
+                    <td>APR 2027</td>
+                    <td>75.400</td>
+                    <td class="price-up">+1.550 (+2.1%)</td>
+                    <td>75.750</td>
+                    <td>73.850</td>
+                    <td>9,882</td>
+                    <td>28,114</td>
+                    <td class="price-down">-2.82¢</td>
+                </tr>
+                <tr>
+                    <td>JUN 2027</td>
+                    <td>82.125</td>
+                    <td class="price-up">+1.825 (+2.3%)</td>
+                    <td>82.500</td>
+                    <td>80.300</td>
+                    <td>6,445</td>
+                    <td>18,669</td>
+                    <td class="price-up">+3.90¢</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Calendar Spreads</div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Spread</th>
+                        <th>Value</th>
+                        <th>Δ Today</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Apr/May</td>
+                        <td class="price-up">+1.550¢</td>
+                        <td class="price-up">+0.225¢</td>
+                    </tr>
+                    <tr>
+                        <td>Jun/Jul</td>
+                        <td class="price-down">-2.875¢</td>
+                        <td class="price-down">-0.175¢</td>
+                    </tr>
+                    <tr>
+                        <td>Jul/Aug</td>
+                        <td class="price-up">+3.225¢</td>
+                        <td class="price-up">+0.350¢</td>
+                    </tr>
+                    <tr>
+                        <td>Oct/Dec</td>
+                        <td class="price-up">+4.325¢</td>
+                        <td class="price-up">+0.275¢</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Contract Specifications</div>
+            </div>
+            <div style="font-size: 12px; line-height: 1.8;">
+                <div class="spec-item">
+                    <div class="spec-name">Contract Size</div>
+                    <div class="spec-detail">40,000 pounds (18.14 metric tons)</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-name">Price Quotation</div>
+                    <div class="spec-detail">Cents per pound</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-name">Tick Size</div>
+                    <div class="spec-detail">$0.00025/lb ($10.00 per contract)</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-name">Settlement</div>
+                    <div class="spec-detail">Cash settled to CME Lean Hog Index</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Volume & Open Interest Summary</div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Total Volume Today</td>
+                        <td>241,793</td>
+                    </tr>
+                    <tr>
+                        <td>Total Open Interest</td>
+                        <td>586,560</td>
+                    </tr>
+                    <tr>
+                        <td>20-Day Avg Volume</td>
+                        <td>218,442</td>
+                    </tr>
+                    <tr>
+                        <td>Volume vs Avg</td>
+                        <td class="price-up">+10.7%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card full-width">
+        <div class="card-header">
+            <div class="card-title">Lean Hog Futures Forward Curve</div>
+        </div>
+        <div class="chart-container">
+            <canvas id="futuresCurveChart"></canvas>
+        </div>
+    </div>
+
+    <!-- SECTION 5: REGIONAL BASIS -->
+    <h2 class="section-header">🗺️ SECTION 5: REGIONAL HOG BASIS TRACKING</h2>
+
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Iowa / Southern Minnesota</div>
+                <span class="badge badge-live">CORE REGION</span>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">Current Basis (vs Nearby CME)</div>
+                <div class="metric-value price-up">+$2.85/cwt</div>
+                <div class="metric-change">5-Year Avg: +$1.42 | Deviation: <span class="price-up">+$1.43 (wide)</span></div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Procurement Strategy</div>
+                <div class="spec-detail">Tight supply driving premium. Major packers competing for volume. Formula contracts dominant (87% of sales).</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Plant Capacity</div>
+                <div class="spec-detail">Daily Capacity: 142,000 head | Utilization: 96% | Top 3 Plants: Smithfield Denison, JBS Marshalltown, Tyson Perry</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Western Corn Belt</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">Current Basis (vs Nearby CME)</div>
+                <div class="metric-value price-up">+$2.15/cwt</div>
+                <div class="metric-change">5-Year Avg: +$1.18 | Deviation: <span class="price-up">+$0.97</span></div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Procurement Strategy</div>
+                <div class="spec-detail">NE/KS/SD region. Good supply but increasing competition. Mix of cash (22%) and formula (78%) pricing.</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Plant Capacity</div>
+                <div class="spec-detail">Daily Capacity: 98,000 head | Utilization: 94% | Major: JBS Omaha, Triumph Sioux Falls</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Eastern Corn Belt</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">Current Basis (vs Nearby CME)</div>
+                <div class="metric-value price-up">+$1.85/cwt</div>
+                <div class="metric-change">5-Year Avg: +$0.95 | Deviation: <span class="price-up">+$0.90</span></div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Procurement Strategy</div>
+                <div class="spec-detail">IL/IN/OH region. Moderate supply, strong packer demand. Formula pricing: 72%, Cash: 28%.</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Plant Capacity</div>
+                <div class="spec-detail">Daily Capacity: 76,000 head | Utilization: 92% | Major: Smithfield Milan, Tyson Logansport</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Southeast</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">Current Basis (vs Nearby CME)</div>
+                <div class="metric-value price-up">+$1.25/cwt</div>
+                <div class="metric-change">5-Year Avg: +$0.62 | Deviation: <span class="price-up">+$0.63</span></div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Procurement Strategy</div>
+                <div class="spec-detail">NC/VA/SC region. Vertically integrated operations dominant. Smithfield controls 65% of regional slaughter.</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Plant Capacity</div>
+                <div class="spec-detail">Daily Capacity: 89,000 head | Utilization: 97% | Major: Smithfield Tar Heel, Clinton, Kinston</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Texas / Oklahoma</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">Current Basis (vs Nearby CME)</div>
+                <div class="metric-value price-down">-$0.45/cwt</div>
+                <div class="metric-change">5-Year Avg: -$0.88 | Deviation: <span class="price-up">+$0.43 (narrowing)</span></div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Procurement Strategy</div>
+                <div class="spec-detail">Isolated region, freight disadvantage offset by lower production costs. Cash market more active (38%).</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-name">Plant Capacity</div>
+                <div class="spec-detail">Daily Capacity: 24,000 head | Utilization: 88% | Major: Seaboard Guymon</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card full-width">
+        <div class="card-header">
+            <div class="card-title">Regional Basis Comparison (Last 12 Months)</div>
+        </div>
+        <div class="chart-container">
+            <canvas id="regionalBasisChart"></canvas>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// Chart.js Configuration
+Chart.defaults.color = '#a0a5b8';
+Chart.defaults.borderColor = '#2d3548';
+Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+
+// Trim Trends Chart
+const trimCtx = document.getElementById('trimTrendsChart').getContext('2d');
+new Chart(trimCtx, {
+    type: 'line',
+    data: {
+        labels: ['Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'],
+        datasets: [
+            {
+                label: '96 CL',
+                data: [1.42, 1.38, 1.45, 1.52, 1.58, 1.65, 1.68],
+                borderColor: '#ff4444',
+                backgroundColor: 'rgba(255, 68, 68, 0.1)',
+                tension: 0.4
+            },
+            {
+                label: '90 CL',
+                data: [1.28, 1.25, 1.32, 1.38, 1.42, 1.48, 1.52],
+                borderColor: '#ff8c42',
+                backgroundColor: 'rgba(255, 140, 66, 0.1)',
+                tension: 0.4
+            },
+            {
+                label: '80 CL',
+                data: [1.08, 1.06, 1.12, 1.18, 1.22, 1.26, 1.28],
+                borderColor: '#ffd700',
+                backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                tension: 0.4
+            },
+            {
+                label: '72 CL',
+                data: [0.92, 0.91, 0.96, 1.02, 1.05, 1.07, 1.09],
+                borderColor: '#00ff88',
+                backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                tension: 0.4
+            },
+            {
+                label: '50 CL',
+                data: [0.76, 0.75, 0.79, 0.84, 0.87, 0.88, 0.90],
+                borderColor: '#4da6ff',
+                backgroundColor: 'rgba(77, 166, 255, 0.1)',
+                tension: 0.4
+            },
+            {
+                label: '42 CL',
+                data: [0.63, 0.62, 0.66, 0.70, 0.72, 0.73, 0.74],
+                borderColor: '#a0a5b8',
+                backgroundColor: 'rgba(160, 165, 184, 0.1)',
+                tension: 0.4
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top',
+                labels: { padding: 15, usePointStyle: true }
+            },
+            title: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: false,
+                grid: { color: '#2d3548' },
+                ticks: {
+                    callback: function(value) {
+                        return '$' + value.toFixed(2);
+                    }
+                }
+            },
+            x: {
+                grid: { display: false }
+            }
+        }
+    }
+});
+
+// Futures Curve Chart
+const futuresCtx = document.getElementById('futuresCurveChart').getContext('2d');
+new Chart(futuresCtx, {
+    type: 'line',
+    data: {
+        labels: ['Apr 26', 'May 26', 'Jun 26', 'Jul 26', 'Aug 26', 'Oct 26', 'Dec 26', 'Feb 27', 'Apr 27', 'Jun 27'],
+        datasets: [{
+            label: 'Current Curve',
+            data: [81.425, 79.875, 88.250, 91.125, 87.900, 72.550, 68.225, 70.950, 75.400, 82.125],
+            borderColor: '#4da6ff',
+            backgroundColor: 'rgba(77, 166, 255, 0.2)',
+            fill: true,
+            tension: 0.4,
+            pointRadius: 6,
+            pointHoverRadius: 8
+        },
+        {
+            label: '1 Week Ago',
+            data: [79.275, 77.950, 85.850, 88.550, 85.675, 71.100, 67.050, 69.625, 73.850, 80.300],
+            borderColor: '#6b7280',
+            borderDash: [5, 5],
+            tension: 0.4,
+            pointRadius: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top',
+                labels: { padding: 15 }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: false,
+                grid: { color: '#2d3548' },
+                ticks: {
+                    callback: function(value) {
+                        return value.toFixed(2) + '¢';
+                    }
+                }
+            },
+            x: {
+                grid: { display: false }
+            }
+        }
+    }
+});
+
+// Regional Basis Chart
+const basisCtx = document.getElementById('regionalBasisChart').getContext('2d');
+new Chart(basisCtx, {
+    type: 'line',
+    data: {
+        labels: ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'],
+        datasets: [
+            {
+                label: 'IA/S.MN',
+                data: [1.82, 1.95, 2.12, 2.28, 2.42, 2.55, 2.48, 2.35, 2.52, 2.68, 2.75, 2.85],
+                borderColor: '#ff4444',
+                tension: 0.4
+            },
+            {
+                label: 'W.Corn Belt',
+                data: [1.25, 1.38, 1.52, 1.68, 1.78, 1.88, 1.82, 1.75, 1.88, 1.98, 2.08, 2.15],
+                borderColor: '#ff8c42',
+                tension: 0.4
+            },
+            {
+                label: 'E.Corn Belt',
+                data: [0.98, 1.08, 1.22, 1.35, 1.45, 1.52, 1.48, 1.42, 1.55, 1.68, 1.75, 1.85],
+                borderColor: '#ffd700',
+                tension: 0.4
+            },
+            {
+                label: 'Southeast',
+                data: [0.65, 0.72, 0.82, 0.92, 0.98, 1.05, 1.02, 0.95, 1.08, 1.15, 1.22, 1.25],
+                borderColor: '#00ff88',
+                tension: 0.4
+            },
+            {
+                label: 'TX/OK',
+                data: [-0.88, -0.82, -0.75, -0.68, -0.62, -0.58, -0.62, -0.68, -0.58, -0.52, -0.48, -0.45],
+                borderColor: '#4da6ff',
+                tension: 0.4
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top',
+                labels: { padding: 15, usePointStyle: true }
+            }
+        },
+        scales: {
+            y: {
+                grid: { color: '#2d3548' },
+                ticks: {
+                    callback: function(value) {
+                        return '$' + value.toFixed(2);
+                    }
+                }
+            },
+            x: {
+                grid: { display: false }
+            }
+        }
+    }
+});
+</script>
+
+</body>
+</html>
