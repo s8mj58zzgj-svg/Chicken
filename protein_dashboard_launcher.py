@@ -1,7 +1,7 @@
 """
-CHICKEN MARKET INTELLIGENCE - Launch Screen
-============================================
-Simplified launcher for the Chicken Market Intelligence platform
+PROTEIN DASHBOARD - Launch Screen
+==================================
+Simplified launcher for the Protein Dashboard platform
 """
 
 import ui
@@ -10,8 +10,8 @@ from data_engine import DataEngine
 from poultry_dashboard import PoultryDashboard
 
 
-class ChickenMarketLauncher(ui.View):
-    """Main launch screen for Chicken Market Intelligence"""
+class ProteinDashboardLauncher(ui.View):
+    """Main launch screen for Protein Dashboard"""
 
     def __init__(self):
         super().__init__()
@@ -24,7 +24,7 @@ class ChickenMarketLauncher(ui.View):
 
         # Main Title
         title = ui.Label(frame=(0, 180, w, 60))
-        title.text = "CHICKEN MARKET\nINTELLIGENCE"
+        title.text = "PROTEIN\nDASHBOARD"
         title.font = ('<system-bold>', 36)
         title.text_color = THEME['gold']
         title.alignment = ui.ALIGN_CENTER
@@ -33,7 +33,7 @@ class ChickenMarketLauncher(ui.View):
 
         # Subtitle
         subtitle = ui.Label(frame=(0, 260, w, 30))
-        subtitle.text = "REAL-TIME MARKET ANALYSIS & FORECASTING"
+        subtitle.text = "REAL-TIME PROTEIN MARKET ANALYSIS & FORECASTING"
         subtitle.font = ('<system>', 13)
         subtitle.text_color = '#888888'
         subtitle.alignment = ui.ALIGN_CENTER
@@ -102,6 +102,6 @@ class ChickenMarketLauncher(ui.View):
 
 
 if __name__ == '__main__':
-    # Launch the chicken market intelligence platform
-    launcher = ChickenMarketLauncher()
+    # Launch the protein dashboard platform
+    launcher = ProteinDashboardLauncher()
     launcher.present('fullscreen')

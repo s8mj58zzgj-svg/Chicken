@@ -1,5 +1,5 @@
 """
-Simple launcher for Chicken Market Intelligence
+Simple launcher for Protein Dashboard
 Run this file in Pythonista to launch the dashboard
 """
 
@@ -11,8 +11,8 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 if current_dir not in sys.path:
     sys.path.insert(0, current_dir)
 
-from chicken_market_launcher import ChickenMarketLauncher
+from protein_dashboard_launcher import ProteinDashboardLauncher
 
 if __name__ == '__main__':
-    launcher = ChickenMarketLauncher()
+    launcher = ProteinDashboardLauncher()
     launcher.present('fullscreen')
