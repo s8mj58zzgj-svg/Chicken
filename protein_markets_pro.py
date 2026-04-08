@@ -26,11 +26,10 @@ import console
 # API KEYS & CONFIGURATION
 # ==================================================
 
-USDA_KEY = "lNNN4FgubqpCxzL6QbHjH9FSIl0DBcSpsPttMjeC"
-FRED_KEY = "bffd29d45a9a9eb8e0ab3dabf716b586"
+# Import centralized configuration
+from config import USDA_KEY, FRED_KEY, FRED_SERIES, MARGIN
 
-MARGIN = 40
-
+# Extended theme with protein-specific colors
 THEME = {
     'bg': '#050505',
     'panel': '#121212',

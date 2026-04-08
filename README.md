@@ -1,6 +1,6 @@
-# 🐔🥚 Poultry & Egg Market Intelligence Platform
+# 🐔🥚 Market Intelligence Platform
 
-**Professional-grade market analysis and price forecasting for the poultry and egg industries**
+**Professional-grade market analysis and price forecasting for protein and agricultural commodities**
 
 Built for Pythonista on iPad | Real-time USDA & FRED API integration
 
@@ -8,13 +8,41 @@ Built for Pythonista on iPad | Real-time USDA & FRED API integration
 
 ## 🎯 Overview
 
-This is a comprehensive dual-market dashboard system providing:
+This repository contains **TWO SEPARATE** market intelligence platforms:
 
-- **Poultry Market Dashboard**: Chicken, broilers, processed products with 90-day forecasts
-- **Egg Market Dashboard**: Layer operations, retail pricing, breaking stock analysis
-- **Real-time Data**: Integration with USDA NASS and Federal Reserve Economic Data (FRED)
-- **Risk Analysis**: HPAI threats, trade dynamics, biological constraints
-- **Price Forecasting**: 90-day forward curves for all major product cuts
+### 1️⃣ CEO Market Intelligence (Chicken-Focused)
+**Launch:** `python launcher.py`
+
+- **Poultry Market Dashboard**: Broilers, processed products, 90-day forecasts
+- **Egg Market Dashboard**: Layer operations, retail pricing, HPAI risk analysis
+- **Cold Storage**: Inventory tracking
+- **Consumer Economics**: Food service & retail trends
+- **Focus**: Deep analysis of chicken/egg markets
+
+### 2️⃣ Protein Markets Intelligence (Multi-Commodity) ⭐ NEW
+**Launch:** `python launch_protein_markets.py`
+
+- **7 Market Categories**: Beef, Dairy, Poultry, Eggs, Pork, Turkey, Grains
+- **16+ API Endpoints**: Comprehensive FRED & USDA data integration
+- **PRO Features**: Charts, forecasting, alerts, export capabilities
+- **Focus**: Comparative analysis across all protein markets
+
+> 📖 **See [PROTEIN_MARKETS_SETUP.md](PROTEIN_MARKETS_SETUP.md) for complete protein markets documentation**
+
+---
+
+## 🚀 Quick Start
+
+### For Chicken/Egg Markets:
+```python
+python launcher.py
+```
+
+### For Protein Markets (All Commodities):
+```python
+python launch_protein_markets.py
+# Choose PRO or Standard dashboard
+```
 
 ---
 
